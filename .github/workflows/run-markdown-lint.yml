@@ -26,6 +26,10 @@ jobs:
         pip install --upgrade pip
         pip install uv
 
+    - name: Create venv
+      run: |
+        uv venv
+
     - name: Run markdown linter
       run: |
         ./bin/run-markdown-lint
