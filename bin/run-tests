@@ -1,0 +1,29 @@
+#!/bin/bash
+# Script to run Python tests
+
+# Exit on any error
+set -e
+
+# Ensure uv is available
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv is not installed or not in PATH"
+    echo "Visit https://github.com/astral-sh/uv for installation instructions"
+    exit 1
+fi
+
+# Default paths to check if no arguments provided
+if [ $# -eq 0 ]; then
+    ARGS=("tests")
+else
+    # Use array for proper argument handling
+    ARGS=("$@")
+fi
+
+# Run tests with pytest via uv
+echo "Running: pytest ${ARGS[*]}"
+if ! uv run -m pytest "${ARGS[@]}"; then
+    echo -e "\nTests failed."
+    exit 1
+fi
+
+echo -e "\nAll tests passed!"

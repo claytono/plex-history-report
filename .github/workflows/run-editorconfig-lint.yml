@@ -1,0 +1,35 @@
+name: EditorConfig Linting
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  editorconfig-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.x']
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install uv
+      shell: bash
+      run: |
+        pip install --upgrade pip
+        pip install uv
+
+    - name: Install dependencies
+      run: |
+        uv pip install -e .[dev]
+
+    - name: Run EditorConfig linter
+      run: |
+        ./bin/run-editorconfig-lint

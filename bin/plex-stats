@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Wrapper script for running plex-stats with UV
+# This passes all arguments to the plex_stats.cli module
+
+# Check if UV is installed
+if ! command -v uv &> /dev/null; then
+    echo "UV is not installed. Please install it first."
+    echo "Visit https://github.com/astral-sh/uv for installation instructions."
+    exit 1
+fi
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# Get the project root directory (parent of bin)
+PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
+
+# Change to the project directory
+cd "$PROJECT_ROOT" || exit 1
+
+# Run plex-stats using UV, which will install dependencies on demand
+uv run -m plex_stats.cli "$@"

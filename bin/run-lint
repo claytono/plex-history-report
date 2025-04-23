@@ -1,0 +1,29 @@
+#!/bin/bash
+# Script to run Python code linting
+
+# Exit on any error
+set -e
+
+# Ensure uv is available
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv is not installed or not in PATH"
+    echo "Visit https://github.com/astral-sh/uv for installation instructions"
+    exit 1
+fi
+
+# Default paths to check if no arguments provided
+if [ $# -eq 0 ]; then
+    ARGS=("plex_stats" "tests")
+else
+    # Use array for proper argument handling
+    ARGS=("$@")
+fi
+
+# Run Ruff with uv
+echo "Running: ruff ${ARGS[*]}"
+if ! uv run -m ruff "${ARGS[@]}"; then
+    echo -e "\nLinting found issues."
+    exit 1
+fi
+
+echo -e "\nLinting completed successfully."

@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=42.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plex-stats"
+version = "0.1.0"
+description = "Tool to track Plex TV show watch statistics"
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+]
+dependencies = ["plexapi>=4.15.0", "rich>=13.0.0", "pyyaml>=6.0"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "ruff>=0.3.0",
+    "pymarkdownlnt>=0.9.0",
+    "shellcheck-py>=0.9.0",
+]
+
+[project.scripts]
+plex-stats = "plex_stats.cli:main"
+
+[tool.setuptools]
+packages = ["plex_stats"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "W",   # pycodestyle warnings
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+    "PTH", # use pathlib
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true

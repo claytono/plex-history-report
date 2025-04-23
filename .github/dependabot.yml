@@ -1,0 +1,23 @@
+# Dependabot configuration for plex-stats
+version: 2
+updates:
+  # Keep Python dependencies up to date
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    # Use uv as package manager
+    registries:
+      - uv-python
+    # Group dependencies together in a single PR
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+registries:
+  # Define the uv Python registry
+  uv-python:
+    type: python-index
+    url: https://pypi.org/simple

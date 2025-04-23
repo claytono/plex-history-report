@@ -1,0 +1,36 @@
+#!/bin/bash
+# Script to run ShellCheck linter on shell scripts
+
+# Exit on any error
+set -e
+
+# Ensure uv is available
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv is not installed or not in PATH"
+    echo "Visit https://github.com/astral-sh/uv for installation instructions"
+    exit 1
+fi
+
+# Default paths to check if no arguments provided
+if [ $# -eq 0 ]; then
+    # Use a more portable approach to find shell scripts
+    ARGS=()
+    while IFS= read -r file; do
+        # Check if file is executable
+        if [ -x "$file" ] && [ -f "$file" ]; then
+            ARGS+=("$file")
+        fi
+    done < <(find bin -type f -not -path "*/\.*")
+else
+    # Use array for proper argument handling
+    ARGS=("$@")
+fi
+
+# Run ShellCheck with uvx
+echo "Running shellcheck on: ${ARGS[*]}"
+if ! uvx --from=shellcheck-py shellcheck "${ARGS[@]}"; then
+    echo -e "\nShell script linting found issues."
+    exit 1
+fi
+
+echo -e "\nShell script linting completed successfully."
