@@ -8,13 +8,13 @@ mkdir -p "$OUTPUT_DIR"
 
 # Function to run a command and save its output
 run_test() {
-  local description="$1"
-  local command="$2"
-  local output_file="$3"
+    local description="$1"
+    local command="$2"
+    local output_file="$3"
 
-  echo "Running test: $description"
-  echo "$command" > "$OUTPUT_DIR/$output_file"
-  eval "$command" >> "$OUTPUT_DIR/$output_file" 2>&1
+    echo "Running test: $description"
+    echo "$command" > "$OUTPUT_DIR/$output_file"
+    eval "$command" >> "$OUTPUT_DIR/$output_file" 2>&1
 }
 
 # Basic functionality tests
@@ -40,9 +40,9 @@ run_test "Movie statistics sorted by last watched" "./bin/plex-stats --movies --
 
 # Cleanup option
 if [[ "$1" == "clean" ]]; then
-  echo "Cleaning up test outputs..."
-  rm -rf "$OUTPUT_DIR"
-  echo "Test outputs cleaned."
+    echo "Cleaning up test outputs..."
+    rm -rf "$OUTPUT_DIR"
+    echo "Test outputs cleaned."
 fi
 
 # Completion message

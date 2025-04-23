@@ -15,14 +15,14 @@ useful too.
 ## Features
 
 - **Comprehensive Statistics**: Calculate detailed watch statistics for both TV shows
-  and movies
+    and movies
 - **Completion Tracking**: See completion percentages for shows and view partially
-  watched content
+    watched content
 - **Multiple Output Formats**: Export as tables, JSON, Markdown, CSV, or YAML
 - **Flexible Filtering**: Filter by user, watch status, or completion percentage
 - **Custom Sorting**: Sort results by various metrics (title, watch count, etc.)
 - **User Management**: Query available Plex users and filter statistics by specific
-  users
+    users
 - **Recently Watched**: View recently watched media with detailed information
 
 ## Installation
@@ -36,17 +36,17 @@ useful too.
 
 1. Clone this repository:
 
-   ```bash
-   git clone https://github.com/claytono/plex-history-report.git
-   cd plex-history-report
-   ```
+    ```bash
+    git clone https://github.com/claytono/plex-history-report.git
+    cd plex-history-report
+    ```
 
 2. Install the package with UV:
 
-   ```bash
-   # Install in development mode
-   uv pip install -e .
-   ```
+    ```bash
+    # Install in development mode
+    uv pip install -e .
+    ```
 
 ## Configuration
 
@@ -54,9 +54,9 @@ Create a `config.yaml` file in the project directory with the following structur
 
 ```yaml
 plex:
-  base_url: "http://your-plex-server:32400"
-  token: "your-plex-token"
-  default_user: "optional-default-username"  # Optional: Set a default user
+    base_url: "http://your-plex-server:32400"
+    token: "your-plex-token"
+    default_user: "optional-default-username"  # Optional: Set a default user
 ```
 
 You can obtain your Plex token by following the instructions in the

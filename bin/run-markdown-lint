@@ -15,17 +15,14 @@ fi
 if [ $# -eq 0 ]; then
     # Run with scan subcommand
     echo "Running markdown lint on tracked markdown files (excluding TODO.md)"
-    
     # Create array of arguments, starting with the 'scan' subcommand
     ARGS=("scan")
-    
     # Find all markdown files that are tracked by git, excluding TODO.md
     while IFS= read -r file; do
         if [ -n "$file" ] && [ "$file" != "TODO.md" ]; then
             ARGS+=("$file")
         fi
     done < <(git --no-pager ls-files "*.md")
-    
     # If no markdown files found (only 'scan' in array), exit successfully
     if [ ${#ARGS[@]} -eq 1 ]; then
         echo "No markdown files found to check."
