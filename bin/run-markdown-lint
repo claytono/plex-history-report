@@ -13,7 +13,7 @@ fi
 
 # Default paths to check if no arguments provided
 if [ $# -eq 0 ]; then
-    ARGS=("*.md" "docs/*.md")
+    ARGS=("scan" ".")
 else
     # Use array for proper argument handling
     ARGS=("$@")

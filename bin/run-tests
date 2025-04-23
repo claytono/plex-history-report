@@ -19,7 +19,12 @@ else
     ARGS=("$@")
 fi
 
-# Run tests with pytest via uv
+# Install package in development mode
+echo "Installing package in development mode..."
+uv pip install -e .[dev]
+
+# Run tests with pytest via uvx
+# Change to virtual environment created by uv
 echo "Running: pytest ${ARGS[*]}"
 if ! uv run -m pytest "${ARGS[@]}"; then
     echo -e "\nTests failed."

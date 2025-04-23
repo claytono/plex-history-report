@@ -21,7 +21,7 @@ fi
 
 # Run Ruff with uv
 echo "Running: ruff check ${ARGS[*]}"
-if ! uv run -m ruff check "${ARGS[@]}"; then
+if ! uvx ruff check "${ARGS[@]}"; then
     echo -e "\nLinting found issues."
     exit 1
 fi
