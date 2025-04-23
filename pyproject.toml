@@ -3,7 +3,7 @@ requires = ["setuptools>=42.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "plex-stats"
+name = "plex-history-report"
 version = "0.1.0"
 description = "Tool to track Plex TV show watch statistics"
 readme = "README.md"
@@ -27,10 +27,10 @@ dev = [
 ]
 
 [project.scripts]
-plex-stats = "plex_stats.cli:main"
+plex-history-report = "plex_history_report.cli:main"
 
 [tool.setuptools]
-packages = ["plex_stats"]
+packages = ["plex_history_report"]
 
 [tool.ruff]
 target-version = "py38"

@@ -68,55 +68,55 @@ The tool can be run directly using the included script:
 
 ```bash
 # Basic usage for TV shows or movies
-./bin/plex-stats --tv
-./bin/plex-stats --movies
+./bin/plex-history-report --tv
+./bin/plex-history-report --movies
 
 # User-specific statistics
-./bin/plex-stats --tv --user username
-./bin/plex-stats --movies --user username
+./bin/plex-history-report --tv --user username
+./bin/plex-history-report --movies --user username
 
 # List available Plex users
-./bin/plex-stats --list-users
+./bin/plex-history-report --list-users
 ```
 
 ### Output Formats
 
 ```bash
 # Default is rich-formatted tables in the terminal
-./bin/plex-stats --tv
+./bin/plex-history-report --tv
 
 # Alternative formats
-./bin/plex-stats --tv --format json      # JSON format
-./bin/plex-stats --tv --format markdown  # Markdown format
-./bin/plex-stats --tv --format csv       # CSV format
-./bin/plex-stats --tv --format yaml      # YAML format
+./bin/plex-history-report --tv --format json      # JSON format
+./bin/plex-history-report --tv --format markdown  # Markdown format
+./bin/plex-history-report --tv --format csv       # CSV format
+./bin/plex-history-report --tv --format yaml      # YAML format
 ```
 
 ### Filtering Options
 
 ```bash
 # Show recently watched content
-./bin/plex-stats --tv --show-recent
+./bin/plex-history-report --tv --show-recent
 
 # Filter to only partially watched content
-./bin/plex-stats --tv --partially-watched-only
+./bin/plex-history-report --tv --partially-watched-only
 
 # Include unwatched content (off by default)
-./bin/plex-stats --tv --include-unwatched
+./bin/plex-history-report --tv --include-unwatched
 ```
 
 ### Sorting Options
 
 ```bash
 # Sort TV shows
-./bin/plex-stats --tv --sort-by completion_percentage
-./bin/plex-stats --tv --sort-by watched_episodes
-./bin/plex-stats --tv --sort-by last_watched
+./bin/plex-history-report --tv --sort-by completion_percentage
+./bin/plex-history-report --tv --sort-by watched_episodes
+./bin/plex-history-report --tv --sort-by last_watched
 
 # Sort movies
-./bin/plex-stats --movies --sort-by last_watched
-./bin/plex-stats --movies --sort-by watch_count
-./bin/plex-stats --movies --sort-by duration_minutes
+./bin/plex-history-report --movies --sort-by last_watched
+./bin/plex-history-report --movies --sort-by watch_count
+./bin/plex-history-report --movies --sort-by duration_minutes
 ```
 
 ### Full Command Reference
@@ -124,7 +124,7 @@ The tool can be run directly using the included script:
 Run the help command for a complete list of options:
 
 ```bash
-./bin/plex-stats --help
+./bin/plex-history-report --help
 ```
 
 ### Available Sort Options
