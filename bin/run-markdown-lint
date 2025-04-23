@@ -14,32 +14,30 @@ fi
 # Default paths to check if no arguments provided
 if [ $# -eq 0 ]; then
     # Run with scan subcommand
-    echo "Running markdown lint on tracked markdown files (excluding TODO.md)"
-    # Create array of arguments, starting with the 'scan' subcommand
     ARGS=("scan")
-    # Find all markdown files that are tracked by git, excluding TODO.md
+
+    # Get markdown files tracked by git and add each one individually to preserve spaces
     while IFS= read -r file; do
-        if [ -n "$file" ] && [ "$file" != "TODO.md" ]; then
+        if [ -n "$file" ]; then
             ARGS+=("$file")
         fi
     done < <(git --no-pager ls-files "*.md")
+
     # If no markdown files found (only 'scan' in array), exit successfully
     if [ ${#ARGS[@]} -eq 1 ]; then
         echo "No markdown files found to check."
         exit 0
     fi
+
+    echo "Running markdown lint on tracked markdown files"
 else
-    # Use array for proper argument handling
+    # Use user-provided arguments
     ARGS=("$@")
 fi
 
-# Install dependencies
-echo "Installing markdown linting dependencies..."
-uv pip install pymarkdownlnt
-
 # Run pymarkdownlnt
 echo "Running: pymarkdownlnt ${ARGS[*]}"
-if ! uv run pymarkdownlnt "${ARGS[@]}"; then
+if ! uvx pymarkdownlnt "${ARGS[@]}"; then
     echo -e "\nMarkdown linting found issues."
     exit 1
 fi

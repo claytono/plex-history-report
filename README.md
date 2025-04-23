@@ -1,28 +1,24 @@
 # Plex History Reports
 
-A Python tool to track, analyze, and report on your Plex media watching statistics.
-Get insights into your TV show and movie watching habits, track completion
-percentages, view watch history, and export reports in multiple formats.
+A Python tool to track, analyze, and report on your Plex media watching statistics. Get insights into
+TV show and movie watching habits, track completion percentages, view watch history, and export
+reports in multiple formats.
 
 ## Background
 
-Originally this started as an effort to collect data from Plex so that I could
-use that to have ChatGPT help me determine if I would like watching a TV show. I
-used GitHub Copilot for most of this and the project kind of went overboard.
-Overall it works well for my needs and I'm happy with it.  I hope you find it
-useful too.
+Originally this started as an effort to collect data from Plex so that I could use that to have ChatGPT
+help me determine if I would like watching a TV show. I used GitHub Copilot for most of this and the
+project kind of went overboard. Overall it works well for my needs and I'm happy with it. I hope you
+find it useful too.
 
 ## Features
 
-- **Comprehensive Statistics**: Calculate detailed watch statistics for both TV shows
-    and movies
-- **Completion Tracking**: See completion percentages for shows and view partially
-    watched content
+- **Comprehensive Statistics**: Calculate detailed watch statistics for both TV shows and movies
+- **Completion Tracking**: See completion percentages for shows and view partially watched content
 - **Multiple Output Formats**: Export as tables, JSON, Markdown, CSV, or YAML
 - **Flexible Filtering**: Filter by user, watch status, or completion percentage
 - **Custom Sorting**: Sort results by various metrics (title, watch count, etc.)
-- **User Management**: Query available Plex users and filter statistics by specific
-    users
+- **User Management**: Query available Plex users and filter statistics by specific users
 - **Recently Watched**: View recently watched media with detailed information
 
 ## Installation
@@ -167,9 +163,9 @@ Run the linter to ensure code quality:
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the
-[LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file
+for details.
 
-This program is free software: you can redistribute it and/or modify it under the
-terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later version.
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
