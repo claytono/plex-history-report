@@ -5,12 +5,15 @@
     invocation or separately.
 - Ensure no trailing whitespace is added to lines and all edited files have a
     final newline.
-- Consult TODO.md to track progress and update it when completing tasks.
-- Ask if new feature requests should be tracked in the TODO file.
-- When processing tasks from the TODO file, focus on a single task at a time
-    unless told otherwise.
-- If a task requires multiple steps, ask if I want to break it down into smaller
-    tasks and ask for confirmation before proceeding.
+- Use the GitHub MCP tool to track tasks via GitHub issues and pull requests.
+  - Ask if new feature requests should be tracked in a GitHub issue.
+  - When creating a new pull request, reference the issue number in the
+    pull request title and description.
+  - When processing tasks from a GitHub issue, focus on a single task at a time unless told
+    otherwise.
+  - If a task requires multiple steps, ask if I want to break it down into smaller tasks and ask for
+    confirmation before proceeding.  These sub-tasks should be represented as a checklist in the
+    associated issue.
 - Prefer editing files directly using your tools, instead of using shell commands
 - We are using `uv` and use best practices for `uv` in all aspects of this project
 - We are using Python 3 for this project. Use the `python3` binary when invoking

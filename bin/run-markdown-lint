@@ -33,13 +33,9 @@ else
     ARGS=("$@")
 fi
 
-# Install dependencies
-echo "Installing markdown linting dependencies..."
-uv pip install pymarkdownlnt
-
 # Run pymarkdownlnt
 echo "Running: pymarkdownlnt ${ARGS[*]}"
-if ! uv run pymarkdownlnt "${ARGS[@]}"; then
+if ! uvx pymarkdownlnt "${ARGS[@]}"; then
     echo -e "\nMarkdown linting found issues."
     exit 1
 fi
