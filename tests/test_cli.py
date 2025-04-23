@@ -4,7 +4,7 @@ import unittest
 from contextlib import suppress
 from unittest.mock import MagicMock, patch
 
-from plex_stats.cli import configure_parser, run
+from plex_history_report.cli import configure_parser, run
 
 
 class TestCLIParser(unittest.TestCase):
@@ -44,9 +44,9 @@ class TestCLIParser(unittest.TestCase):
     def test_detailed_to_show_recent_mapping(self):
         """Test that --detailed maps to --show-recent."""
         # Create a mock object for run function's dependencies
-        with patch('plex_stats.cli.load_config'), \
-             patch('plex_stats.cli.PlexClient'), \
-             patch('plex_stats.cli.RichFormatter'):
+        with patch('plex_history_report.cli.load_config'), \
+             patch('plex_history_report.cli.PlexClient'), \
+             patch('plex_history_report.cli.RichFormatter'):
 
             # Parse args with --detailed
             args = self.parser.parse_args(['--tv', '--detailed'])
@@ -57,8 +57,8 @@ class TestCLIParser(unittest.TestCase):
             mock_console = MagicMock()
 
             # Run with args containing --detailed
-            with patch('plex_stats.cli.Console', return_value=mock_console), \
-                 patch('plex_stats.cli.logger'), \
+            with patch('plex_history_report.cli.Console', return_value=mock_console), \
+                 patch('plex_history_report.cli.logger'), \
                  suppress(Exception):
                 run(args)
 
@@ -80,11 +80,11 @@ class TestCLIParser(unittest.TestCase):
         mock_client = MagicMock()
         mock_client.get_all_movie_statistics.return_value = mock_movies
 
-        with patch('plex_stats.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
-             patch('plex_stats.cli.PlexClient', return_value=mock_client), \
-             patch('plex_stats.cli.RichFormatter'), \
-             patch('plex_stats.cli.Console', return_value=MagicMock()), \
-             patch('plex_stats.cli.logger'):
+        with patch('plex_history_report.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
+             patch('plex_history_report.cli.PlexClient', return_value=mock_client), \
+             patch('plex_history_report.cli.RichFormatter'), \
+             patch('plex_history_report.cli.Console', return_value=MagicMock()), \
+             patch('plex_history_report.cli.logger'):
 
             # Parse args with --partially-watched-only
             args = self.parser.parse_args(['--movies', '--partially-watched-only'])
@@ -121,11 +121,11 @@ class TestCLIParser(unittest.TestCase):
         mock_client = MagicMock()
         mock_client.get_all_show_statistics.return_value = mock_shows
 
-        with patch('plex_stats.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
-             patch('plex_stats.cli.PlexClient', return_value=mock_client), \
-             patch('plex_stats.cli.RichFormatter'), \
-             patch('plex_stats.cli.Console', return_value=MagicMock()), \
-             patch('plex_stats.cli.logger'):
+        with patch('plex_history_report.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
+             patch('plex_history_report.cli.PlexClient', return_value=mock_client), \
+             patch('plex_history_report.cli.RichFormatter'), \
+             patch('plex_history_report.cli.Console', return_value=MagicMock()), \
+             patch('plex_history_report.cli.logger'):
 
             # Parse args with --partially-watched-only
             args = self.parser.parse_args(['--tv', '--partially-watched-only'])
@@ -149,15 +149,15 @@ class TestCLIParser(unittest.TestCase):
 
     def test_debug_logging(self):
         """Test that debug logging is enabled when --debug flag is used."""
-        # Create a mock for plex_stats.cli.logger directly
+        # Create a mock for plex_history_report.cli.logger directly
         mock_logger = MagicMock()
 
         # Now patch dependencies including the logger in cli.py
-        with patch('plex_stats.cli.logger', mock_logger), \
-             patch('plex_stats.cli.load_config'), \
-             patch('plex_stats.cli.PlexClient'), \
-             patch('plex_stats.cli.RichFormatter'), \
-             patch('plex_stats.cli.Console', return_value=MagicMock()):
+        with patch('plex_history_report.cli.logger', mock_logger), \
+             patch('plex_history_report.cli.load_config'), \
+             patch('plex_history_report.cli.PlexClient'), \
+             patch('plex_history_report.cli.RichFormatter'), \
+             patch('plex_history_report.cli.Console', return_value=MagicMock()):
 
             # Parse args with --debug
             args = self.parser.parse_args(['--tv', '--debug'])
@@ -186,11 +186,11 @@ class TestCLIParser(unittest.TestCase):
         mock_client = MagicMock()
         mock_client.get_all_show_statistics.return_value = mock_shows
 
-        with patch('plex_stats.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
-             patch('plex_stats.cli.PlexClient', return_value=mock_client), \
-             patch('plex_stats.cli.RichFormatter'), \
-             patch('plex_stats.cli.Console', return_value=MagicMock()), \
-             patch('plex_stats.cli.logger'):
+        with patch('plex_history_report.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
+             patch('plex_history_report.cli.PlexClient', return_value=mock_client), \
+             patch('plex_history_report.cli.RichFormatter'), \
+             patch('plex_history_report.cli.Console', return_value=MagicMock()), \
+             patch('plex_history_report.cli.logger'):
 
             # Case 1: Normal filtering (default)
             args = self.parser.parse_args(['--tv'])

@@ -1,6 +1,6 @@
-"""Command-line interface for Plex Stats.
+"""Command-line interface for Plex History Reports.
 
-This module provides the command-line interface for the plex-stats tool.
+This module provides the command-line interface for the plex-history-report tool.
 """
 
 import argparse
@@ -11,8 +11,13 @@ from pathlib import Path
 from rich.console import Console
 from rich.logging import RichHandler
 
-from plex_stats.config import DEFAULT_CONFIG_PATH, ConfigError, create_default_config, load_config
-from plex_stats.formatters import (
+from plex_history_report.config import (
+    DEFAULT_CONFIG_PATH,
+    ConfigError,
+    create_default_config,
+    load_config,
+)
+from plex_history_report.formatters import (
     CompactFormatter,
     CsvFormatter,
     JsonFormatter,
@@ -20,7 +25,7 @@ from plex_stats.formatters import (
     RichFormatter,
     YamlFormatter,
 )
-from plex_stats.plex_client import PlexClient, PlexClientError
+from plex_history_report.plex_client import PlexClient, PlexClientError
 
 # Configure logging
 logging.basicConfig(
@@ -30,7 +35,7 @@ logging.basicConfig(
     handlers=[RichHandler(rich_tracebacks=True)]
 )
 
-logger = logging.getLogger("plex_stats")
+logger = logging.getLogger("plex_history_report")
 
 
 # Define available sort options for different media types
@@ -135,7 +140,7 @@ def configure_parser() -> argparse.ArgumentParser:
 
 
 def run(args: argparse.Namespace) -> int:
-    """Run the plex-stats tool.
+    """Run the plex-history-report tool.
 
     Args:
         args: Command-line arguments.
@@ -147,7 +152,7 @@ def run(args: argparse.Namespace) -> int:
 
     # Configure logging level
     if args.debug:
-        logging.getLogger("plex_stats").setLevel(logging.DEBUG)
+        logging.getLogger("plex_history_report").setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled")
 
     # Create default config if requested
@@ -318,7 +323,7 @@ def run(args: argparse.Namespace) -> int:
 
 
 def main() -> None:
-    """Main entry point for the plex-stats CLI."""
+    """Main entry point for the plex-history-report CLI."""
     parser = configure_parser()
     args = parser.parse_args()
 

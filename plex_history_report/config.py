@@ -1,4 +1,4 @@
-"""Configuration handler for Plex Stats.
+"""Configuration handler for Plex History Report.
 
 This module handles loading and validating configuration from a YAML file.
 """

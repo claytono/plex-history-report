@@ -13,7 +13,7 @@ fi
 
 # Default paths to check if no arguments provided
 if [ $# -eq 0 ]; then
-    ARGS=("plex_stats" "tests")
+    ARGS=("plex_history_report" "tests")
 else
     # Use array for proper argument handling
     ARGS=("$@")

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import yaml
 
-from plex_stats.formatters import (
+from plex_history_report.formatters import (
     CsvFormatter,
     JsonFormatter,
     MarkdownFormatter,
