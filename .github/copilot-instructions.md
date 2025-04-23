@@ -1,6 +1,6 @@
 # Copilot Instructions for Plex Stats
 
-- When running git commands use the `--no-pager` argument yes, to avoid issues with large diffs:
+- When running `git` commands use `git --no-pager` to avoid paging output.
 - Group multiple commands into logical sets and offer to run them in a single invocation or separately.
 - Ensure no trailing whitespace is added to lines and all edited files have a final newline.
 - Consult TODO.md to track progress and update it when completing tasks.
@@ -13,3 +13,4 @@
 - Only add comments to the code if they are necessary for understanding the code.
 - When making a commit, inspect the README.md to determine if the commit message should be updated to reflect the changes made.
 - Before making a commit, offer to run the linter and tests to ensure everything is working correctly.
+- Assume the `gh` command is available for GitHub CLI operations.
