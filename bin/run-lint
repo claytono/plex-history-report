@@ -20,8 +20,8 @@ else
 fi
 
 # Run Ruff with uv
-echo "Running: ruff ${ARGS[*]}"
-if ! uv run -m ruff "${ARGS[@]}"; then
+echo "Running: ruff check ${ARGS[*]}"
+if ! uv run -m ruff check "${ARGS[@]}"; then
     echo -e "\nLinting found issues."
     exit 1
 fi
