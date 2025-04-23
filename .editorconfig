@@ -19,10 +19,15 @@ indent_style = space
 # Default indentation size
 indent_size = 4
 
-# Python-specific settings
-[*.{py}]
-indent_size = 4
-max_line_length = 100
+# Exclude Python files (handled by ruff)
+[*.py]
+charset = unset
+end_of_line = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+indent_style = unset
+indent_size = unset
+max_line_length = unset
 
 # YAML, JSON, and similar formats often use 2-space indentation
 [*.{yml,yaml,json}]

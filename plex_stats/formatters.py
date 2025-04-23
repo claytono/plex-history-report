@@ -886,166 +886,170 @@ class CsvFormatter(BaseFormatter):
 
 class CompactFormatter(BaseFormatter):
     """Formatter for ultra-compact output to reduce token consumption.
-    
+
     This formatter produces minimal output to reduce token usage when
     using the output as input to LLMs like ChatGPT.
     """
 
     def format_show_statistics(self, stats: List[Dict]) -> str:
         """Format show statistics in a compact format.
-        
+
         Args:
             stats: List of show statistics.
-            
+
         Returns:
             Compact string representation of the statistics.
         """
         if not stats:
             return "NoShows"
-            
+
         # Use short but descriptive column headers
         lines = ["Title|Watched|Total|WatchTime"]
-        
+
         # Add rows for each show with minimal separators
         for show in stats:
             # Format watch time compactly
             hours = int(show['total_watch_time_minutes'] // 60)
             minutes = int(show['total_watch_time_minutes'] % 60)
             watch_time = f"{hours}h{minutes}m" if hours > 0 else f"{minutes}m"
-            
+
             # Clean title for delimiter use
             title = show['title'].replace('|', '/')
-            
+
             # Create compact row
             lines.append(f"{title}|{show['watched_episodes']}|{show['total_episodes']}|{watch_time}")
-        
+
         # Add compact summary (S: for summary)
         total_shows = len(stats)
         watched_shows = sum(1 for show in stats if show['watched_episodes'] > 0)
         total_episodes = sum(show['total_episodes'] for show in stats)
         watched_episodes = sum(show['watched_episodes'] for show in stats)
         total_watch_time = sum(show['total_watch_time_minutes'] for show in stats)
+
         hours = int(total_watch_time // 60)
         minutes = int(total_watch_time % 60)
-        
-        lines.append(f"Summary: TotalShows={total_shows} WatchedShows={watched_shows} Episodes={watched_episodes}/{total_episodes} TotalTime={hours}h{minutes}m")
-        
+
+        lines.append(f"Summary: TotalShows={total_shows} WatchedShows={watched_shows} Episodes={watched_episodes}/{total_episodes} TotalWatchTime={hours}h{minutes}m")
+
         return "\n".join(lines)
-    
+
     def format_movie_statistics(self, stats: List[Dict]) -> str:
         """Format movie statistics in a compact format.
-        
+
         Args:
             stats: List of movie statistics.
-            
+
         Returns:
             Compact string representation of the statistics.
         """
         if not stats:
             return "NoMovies"
-            
+
         # Use short but descriptive column headers
         lines = ["Title|WatchCount|LastWatched|Duration|Rating"]
-        
+
         # Add rows for each movie
         for movie in stats:
             # Format last watched date compactly
             last_watched = movie['last_watched']
             formatted_date = "-"
             if last_watched:
+                # Convert to datetime and format
                 if isinstance(last_watched, (int, float)):
                     last_watched = datetime.fromtimestamp(last_watched)
                 formatted_date = last_watched.strftime("%y-%m-%d")  # Shorter year format
-            
+
             # Format duration compactly
             hours = int(movie['duration_minutes'] // 60)
             minutes = int(movie['duration_minutes'] % 60)
             duration = f"{hours}h{minutes}m" if hours > 0 else f"{minutes}m"
-            
+
             # Format rating
             rating = f"{movie['rating']}" if movie['rating'] else "-"
-            
+
             # Clean title for delimiter use
             title = movie['title'].replace('|', '/')
-            
+
             # Create compact row
             lines.append(f"{title}|{movie['watch_count']}|{formatted_date}|{duration}|{rating}")
-        
+
         # Add compact summary
         total_movies = len(stats)
         watched_movies = sum(1 for movie in stats if movie['watched'])
         watch_count = sum(movie['watch_count'] for movie in stats)
         total_duration = sum(movie['duration_minutes'] for movie in stats)
         watched_duration = sum(movie['duration_minutes'] * movie['watch_count'] for movie in stats if movie['watched'])
-        
+
         tot_h = int(total_duration // 60)
         tot_m = int(total_duration % 60)
         wat_h = int(watched_duration // 60)
         wat_m = int(watched_duration % 60)
-        
-        lines.append(f"Summary: TotalMovies={total_movies} WatchedMovies={watched_movies} TotalWatches={watch_count} TotalDuration={tot_h}h{tot_m}m WatchTime={wat_h}h{wat_m}m")
-        
+
+        lines.append(f"Summary: TotalMovies={total_movies} WatchedMovies={watched_movies} TotalWatches={watch_count} TotalDuration={tot_h}h{tot_m}m WatchedDuration={wat_h}h{wat_m}m")
+
         return "\n".join(lines)
-    
+
     def format_recently_watched(self, stats: List[Dict], media_type: str = "show") -> str:
         """Format recently watched media in a compact format.
-        
+
         Args:
             stats: List of recently watched media statistics.
             media_type: Type of media ("show" or "movie").
-            
+
         Returns:
             Compact string representation of the recently watched media.
         """
         if not stats:
             return f"NoRecent{media_type.title()}s"
-        
+
         if media_type == "show":
             # Short but descriptive headers for shows
             lines = ["Title|LastWatched|Progress|WatchTime"]
-            
+
             for show in stats:
                 # Format last watched date compactly
                 last_watched = show['last_watched']
-                formatted_date = "-"
+                formatted_date = "Never"
                 if last_watched:
+                    # Convert to datetime and format
                     if isinstance(last_watched, (int, float)):
                         last_watched = datetime.fromtimestamp(last_watched)
                     formatted_date = last_watched.strftime("%y-%m-%d")  # Shorter year format
-                
+
                 # Format watch time compactly
                 hours = int(show['total_watch_time_minutes'] // 60)
                 minutes = int(show['total_watch_time_minutes'] % 60)
                 watch_time = f"{hours}h{minutes}m" if hours > 0 else f"{minutes}m"
-                
+
                 # Format progress without percentage
                 progress = f"{show['watched_episodes']}/{show['total_episodes']}"
-                
+
                 # Clean title for delimiter use
                 title = show['title'].replace('|', '/')
-                
+
                 lines.append(f"{title}|{formatted_date}|{progress}|{watch_time}")
         else:  # movies
             # Short but descriptive headers for movies
             lines = ["Title|LastWatched|WatchCount|Duration"]
-            
+
             for movie in stats:
                 # Format last watched date compactly
                 last_watched = movie['last_watched']
-                formatted_date = "-"
+                formatted_date = "Never"
                 if last_watched:
+                    # Convert to datetime and format
                     if isinstance(last_watched, (int, float)):
                         last_watched = datetime.fromtimestamp(last_watched)
                     formatted_date = last_watched.strftime("%y-%m-%d")  # Shorter year format
-                
+
                 # Format duration compactly
                 hours = int(movie['duration_minutes'] // 60)
                 minutes = int(movie['duration_minutes'] % 60)
                 duration = f"{hours}h{minutes}m" if hours > 0 else f"{minutes}m"
-                
+
                 # Clean title for delimiter use
                 title = movie['title'].replace('|', '/')
-                
+
                 lines.append(f"{title}|{formatted_date}|{movie['watch_count']}|{duration}")
-        
+
         return "\n".join(lines)
