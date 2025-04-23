@@ -1,4 +1,4 @@
-"""Formatters for displaying Plex statistics.
+"""Formatters for displaying Plex History Report statistics.
 
 This module provides various formatters for displaying Plex statistics
 in different formats like text tables, JSON, etc.

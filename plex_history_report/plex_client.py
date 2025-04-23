@@ -1,4 +1,4 @@
-"""Plex client module for retrieving statistics."""
+"""Plex client module for retrieving Plex History Report statistics."""
 
 import logging
 from datetime import datetime

@@ -1,4 +1,4 @@
-# Dependabot configuration for plex-stats
+# Dependabot configuration for plex-history-report
 version: 2
 updates:
   # Keep Python dependencies up to date
