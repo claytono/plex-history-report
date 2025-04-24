@@ -1,5 +1,6 @@
 """Rich formatter for displaying Plex History Report statistics with tables."""
 
+import io
 from datetime import datetime
 from typing import Dict, List
 
@@ -15,19 +16,27 @@ class RichFormatter(BaseFormatter):
 
     def __init__(self):
         """Initialize the Rich formatter."""
+        # Keep the regular console for testing and internal use
         self.console = Console()
 
-    def format_show_statistics(self, stats: List[Dict]) -> None:
+    def format_show_statistics(self, stats: List[Dict]) -> str:
         """Format show statistics using Rich tables.
 
         Args:
             stats: List of show statistics.
+
+        Returns:
+            Formatted string representation of the statistics.
         """
+        # Create a StringIO-based console to capture output
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=120)
+
         if not stats:
-            self.console.print(Panel("No TV shows found in your Plex library",
-                                     title="TV Show Statistics",
-                                     border_style="yellow"))
-            return
+            console.print(Panel("No TV shows found in your Plex library",
+                               title="TV Show Statistics",
+                               border_style="yellow"))
+            return string_io.getvalue()
 
         # Create a table for show statistics
         table = Table(title="TV Show Statistics")
@@ -55,19 +64,27 @@ class RichFormatter(BaseFormatter):
                 watch_time
             )
 
-        self.console.print(table)
+        console.print(table)
+        return string_io.getvalue()
 
-    def format_movie_statistics(self, stats: List[Dict]) -> None:
+    def format_movie_statistics(self, stats: List[Dict]) -> str:
         """Format movie statistics using Rich tables.
 
         Args:
             stats: List of movie statistics.
+
+        Returns:
+            Formatted string representation of the statistics.
         """
+        # Create a StringIO-based console to capture output
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=120)
+
         if not stats:
-            self.console.print(Panel("No movies found in your Plex library",
-                                     title="Movie Statistics",
-                                     border_style="yellow"))
-            return
+            console.print(Panel("No movies found in your Plex library",
+                               title="Movie Statistics",
+                               border_style="yellow"))
+            return string_io.getvalue()
 
         # Create a table for movie statistics
         table = Table(title="Movie Statistics")
@@ -104,25 +121,33 @@ class RichFormatter(BaseFormatter):
                 rating
             )
 
-        self.console.print(table)
+        console.print(table)
+        return string_io.getvalue()
 
-    def format_recently_watched(self, stats: List[Dict], media_type: str = "show") -> None:
+    def format_recently_watched(self, stats: List[Dict], media_type: str = "show") -> str:
         """Format recently watched media using Rich tables.
 
         Args:
             stats: List of recently watched media statistics.
             media_type: Type of media ("show" or "movie").
+
+        Returns:
+            Formatted string representation of the recently watched media.
         """
+        # Create a StringIO-based console to capture output
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=120)
+
         if not stats:
-            self.console.print(Panel(f"No recently watched {media_type}s found",
-                                     title=f"Recently Watched {media_type.title()}s",
-                                     border_style="yellow"))
-            return
+            console.print(Panel(f"No recently watched {media_type}s found",
+                               title=f"Recently Watched {media_type.title()}s",
+                               border_style="yellow"))
+            return string_io.getvalue()
 
         # Create a table for recently watched media
         table = Table(title=f"Recently Watched {media_type.title()}s")
 
-        if (media_type == "show"):
+        if media_type == "show":
             table.add_column("Title", style="cyan", no_wrap=True)
             table.add_column("Last Watched", justify="right", style="green")
             table.add_column("Progress", justify="right", style="magenta")
@@ -182,17 +207,25 @@ class RichFormatter(BaseFormatter):
                     duration
                 )
 
-        self.console.print(table)
+        console.print(table)
+        return string_io.getvalue()
 
-    def format_summary(self, stats: List[Dict], media_type: str = "show") -> None:
+    def format_summary(self, stats: List[Dict], media_type: str = "show") -> str:
         """Format summary statistics.
 
         Args:
             stats: List of statistics.
             media_type: Type of media ("show" or "movie").
+
+        Returns:
+            Formatted string representation of the summary.
         """
+        # Create a StringIO-based console to capture output
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=120)
+
         if not stats:
-            return
+            return ""
 
         if media_type == "show":
             # Calculate show summary statistics
@@ -249,4 +282,5 @@ class RichFormatter(BaseFormatter):
                 border_style="green"
             )
 
-        self.console.print(summary)
+        console.print(summary)
+        return string_io.getvalue()

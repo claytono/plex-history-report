@@ -37,16 +37,14 @@ class TestRounding(unittest.TestCase):
             'rating': 9.1
         }
 
-        # Mock the console to check output
+        # Test with Rich formatter
         formatter = RichFormatter()
-        mock_console = MagicMock()
-        formatter.console = mock_console
+        result = formatter.format_show_statistics([sample_show])
 
-        # Format the show
-        formatter.format_show_statistics([sample_show])
-
-        # Check that the console.print was called with a table
-        mock_console.print.assert_called()
+        # Check that the result contains the rounded percentage
+        self.assertIn('65.9%', result)
+        # We shouldn't see the full unrounded number
+        self.assertNotIn('65.91466666666668', result)
 
     def test_markdown_formatter_rounding(self):
         """Test that MarkdownFormatter correctly rounds percentages."""
@@ -243,16 +241,13 @@ class TestComplexData(unittest.TestCase):
     def test_rich_complex_data(self):
         """Test that RichFormatter correctly handles complex nested data."""
         formatter = RichFormatter()
+        result = formatter.format_show_statistics(self.complex_show_data)
 
-        # Mock console to capture output
-        mock_console = MagicMock()
-        formatter.console = mock_console
-
-        # Format the show
-        formatter.format_show_statistics(self.complex_show_data)
-
-        # Check that the console.print was called
-        mock_console.print.assert_called()
+        # Check that all important elements are included in the output
+        self.assertIn('Complex Show', result)
+        self.assertIn('75.0%', result)
+        self.assertIn('Another Show', result)
+        self.assertIn('100.0%', result)
 
 
 class TestMarkdownLinting(unittest.TestCase):
@@ -573,13 +568,12 @@ class TestIntegratedFormatting(unittest.TestCase):
     @patch("plex_history_report.formatters.RichFormatter.format_show_statistics")
     @patch("plex_history_report.formatters.RichFormatter.format_recently_watched")
     def test_rich_formatter_direct_methods(self, mock_format_recent, mock_format_show):
-        """Test that RichFormatter's direct methods are called correctly."""
-        # The RichFormatter is special as it prints directly to the console
+        """Test that RichFormatter's methods are called correctly."""
         formatter = FormatterFactory.get_formatter("table")
 
-        # Set up mocks
-        mock_format_show.return_value = None  # Rich formatter methods don't return strings
-        mock_format_recent.return_value = None
+        # Set up mocks to return string values (as now expected)
+        mock_format_show.return_value = "Mock show statistics"
+        mock_format_recent.return_value = "Mock recently watched"
 
         # Call format_content
         outputs = formatter.format_content(
@@ -590,8 +584,10 @@ class TestIntegratedFormatting(unittest.TestCase):
         mock_format_show.assert_called_once_with(self.stats)
         mock_format_recent.assert_called_once_with(self.recently_watched, media_type="show")
 
-        # Even though the direct methods return None, format_content should handle this
+        # Check that the returned strings are included in the output
         self.assertEqual(len(outputs), 2)
+        self.assertEqual(outputs[0], "Mock show statistics")
+        self.assertEqual(outputs[1], "Mock recently watched")
 
 
 if __name__ == '__main__':
