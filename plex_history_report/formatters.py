@@ -9,7 +9,7 @@ import io
 import json
 import logging
 from datetime import datetime
-from typing import Dict, List
+from typing import ClassVar, Dict, List, Optional, Type
 
 import yaml
 from rich.console import Console
@@ -55,6 +55,46 @@ class BaseFormatter:
             Formatted string representation of the recently watched media.
         """
         raise NotImplementedError()
+
+    def format_content(self, stats: List[Dict], media_type: str, show_recent: bool = False,
+                       recently_watched: Optional[List[Dict]] = None) -> List[str]:
+        """Format content based on media type and whether to show recent content.
+
+        This is a convenience method to standardize output handling across formatters.
+
+        Args:
+            stats: List of statistics for the main content.
+            media_type: Type of media ("show" or "movie").
+            show_recent: Whether to include recently watched content.
+            recently_watched: List of recently watched media statistics.
+
+        Returns:
+            List of formatted strings to be displayed.
+        """
+        outputs = []
+
+        # Format main statistics
+        if media_type == "show":
+            outputs.append(self.format_show_statistics(stats))
+        else:
+            outputs.append(self.format_movie_statistics(stats))
+
+        # Format recently watched content if requested
+        if show_recent and recently_watched is not None:
+            outputs.append(self.format_recently_watched(recently_watched, media_type=media_type))
+
+        return outputs
+
+    def display_output(self, console: Console, outputs: List[str]) -> None:
+        """Display formatted outputs to the console.
+
+        Args:
+            console: Rich console to print to.
+            outputs: List of formatted strings to display.
+        """
+        for output in outputs:
+            if output:  # Only display non-empty output
+                console.print(output)
 
 
 class RichFormatter(BaseFormatter):
@@ -1027,3 +1067,54 @@ class CompactFormatter(BaseFormatter):
                 lines.append(f"{title}|{formatted_date}|{movie['watch_count']}|{duration}")
 
         return "\n".join(lines)
+
+
+class FormatterFactory:
+    """Factory for creating formatters based on format name."""
+
+    _formatters: ClassVar[Dict[str, Type[BaseFormatter]]] = {
+        "table": RichFormatter,
+        "json": JsonFormatter,
+        "markdown": MarkdownFormatter,
+        "csv": CsvFormatter,
+        "yaml": YamlFormatter,
+        "compact": CompactFormatter,
+    }
+
+    @classmethod
+    def get_formatter(cls, format_name: str) -> BaseFormatter:
+        """Get a formatter instance based on format name.
+
+        Args:
+            format_name: Name of the format (table, json, yaml, etc.)
+
+        Returns:
+            An instance of the appropriate formatter.
+
+        Raises:
+            ValueError: If format_name is not recognized.
+        """
+        formatter_class = cls._formatters.get(format_name)
+        if formatter_class is None:
+            raise ValueError(f"Unknown format: {format_name}")
+
+        return formatter_class()
+
+    @classmethod
+    def register_formatter(cls, format_name: str, formatter_class: Type[BaseFormatter]) -> None:
+        """Register a new formatter type.
+
+        Args:
+            format_name: Name of the format.
+            formatter_class: Formatter class to register.
+        """
+        cls._formatters[format_name] = formatter_class
+
+    @classmethod
+    def get_available_formats(cls) -> List[str]:
+        """Get a list of available format names.
+
+        Returns:
+            List of available format names.
+        """
+        return list(cls._formatters.keys())

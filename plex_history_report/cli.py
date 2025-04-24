@@ -17,14 +17,7 @@ from plex_history_report.config import (
     create_default_config,
     load_config,
 )
-from plex_history_report.formatters import (
-    CompactFormatter,
-    CsvFormatter,
-    JsonFormatter,
-    MarkdownFormatter,
-    RichFormatter,
-    YamlFormatter,
-)
+from plex_history_report.formatters import FormatterFactory
 from plex_history_report.plex_client import PlexClient, PlexClientError
 
 # Configure logging
@@ -72,10 +65,12 @@ def configure_parser() -> argparse.ArgumentParser:
         help="Path to configuration file"
     )
 
+    # Get available formats from FormatterFactory
+    available_formats = FormatterFactory.get_available_formats()
     parser.add_argument(
         "--format",
         type=str,
-        choices=["table", "json", "markdown", "csv", "yaml", "compact"],
+        choices=available_formats,
         default="table",
         help="Output format (default: table)"
     )
@@ -185,19 +180,12 @@ def run(args: argparse.Namespace) -> int:
         console.print("\nRun with --create-config to create a default configuration file.")
         return 1
 
-    # Initialize formatter
-    if args.format == "table":
-        formatter = RichFormatter()
-    elif args.format == "json":
-        formatter = JsonFormatter()
-    elif args.format == "markdown":
-        formatter = MarkdownFormatter()
-    elif args.format == "csv":
-        formatter = CsvFormatter()
-    elif args.format == "yaml":
-        formatter = YamlFormatter()
-    elif args.format == "compact":
-        formatter = CompactFormatter()
+    # Initialize formatter using the factory
+    try:
+        formatter = FormatterFactory.get_formatter(args.format)
+    except ValueError as e:
+        console.print(f"[bold red]Error:[/bold red] {e}")
+        return 1
 
     try:
         # Connect to Plex server
@@ -276,56 +264,24 @@ def run(args: argparse.Namespace) -> int:
             args.show_recent = True
             logger.warning("The --detailed flag is deprecated. Please use --show-recent instead.")
 
-        # Format and display statistics
-        if args.format == "table":
-            # Using Rich formatter for table output
+        # Get recently watched content if needed
+        recently_watched = None
+        if args.show_recent:
             if args.tv:
-                formatter.format_show_statistics(stats)
+                recently_watched = client.get_recently_watched_shows(username=username)
             else:
-                formatter.format_movie_statistics(stats)
+                recently_watched = client.get_recently_watched_movies(username=username)
 
-            # Show summary
-            formatter.format_summary(stats, media_type=media_type)
+        # Use the standardized format_content method for all formatters
+        outputs = formatter.format_content(
+            stats,
+            media_type=media_type,
+            show_recent=args.show_recent,
+            recently_watched=recently_watched
+        )
 
-            # Show recently watched if requested
-            if args.show_recent:
-                if args.tv:
-                    recently_watched = client.get_recently_watched_shows(username=username)
-                    formatter.format_recently_watched(recently_watched, media_type="show")
-                else:
-                    recently_watched = client.get_recently_watched_movies(username=username)
-                    formatter.format_recently_watched(recently_watched, media_type="movie")
-        elif args.format == "compact":
-            # Special handling for compact format
-            if args.tv:
-                output = formatter.format_show_statistics(stats)
-            else:
-                output = formatter.format_movie_statistics(stats)
-            console.print(output)
-
-            if args.show_recent:
-                if args.tv:
-                    recently_watched = client.get_recently_watched_shows(username=username)
-                else:
-                    recently_watched = client.get_recently_watched_movies(username=username)
-                recently_output = formatter.format_recently_watched(recently_watched, media_type=media_type)
-                console.print(recently_output)
-        else:
-            # Non-table output (json, markdown, csv, yaml)
-            if args.tv:
-                output = formatter.format_show_statistics(stats)
-            else:
-                output = formatter.format_movie_statistics(stats)
-            console.print(output)
-
-            if args.show_recent:
-                if args.tv:
-                    recently_watched = client.get_recently_watched_shows(username=username)
-                    recently_output = formatter.format_recently_watched(recently_watched, media_type="show")
-                else:
-                    recently_watched = client.get_recently_watched_movies(username=username)
-                    recently_output = formatter.format_recently_watched(recently_watched, media_type="movie")
-                console.print(recently_output)
+        # Use the standardized display_output method to print to console
+        formatter.display_output(console, outputs)
 
         return 0
 
