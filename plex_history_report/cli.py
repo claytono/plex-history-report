@@ -295,6 +295,21 @@ def run(args: argparse.Namespace) -> int:
                 else:
                     recently_watched = client.get_recently_watched_movies(username=username)
                     formatter.format_recently_watched(recently_watched, media_type="movie")
+        elif args.format == "compact":
+            # Special handling for compact format
+            if args.tv:
+                output = formatter.format_show_statistics(stats)
+            else:
+                output = formatter.format_movie_statistics(stats)
+            console.print(output)
+
+            if args.show_recent:
+                if args.tv:
+                    recently_watched = client.get_recently_watched_shows(username=username)
+                else:
+                    recently_watched = client.get_recently_watched_movies(username=username)
+                recently_output = formatter.format_recently_watched(recently_watched, media_type=media_type)
+                console.print(recently_output)
         else:
             # Non-table output (json, markdown, csv, yaml)
             if args.tv:
