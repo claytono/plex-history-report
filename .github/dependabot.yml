@@ -7,12 +7,26 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    # Allow execution of external code required by some Python packages
+    insecure-external-code-execution: allow
     # Use uv as package manager
     registries:
       - uv-python
     # Group dependencies together in a single PR
     groups:
       dependencies:
+        patterns:
+          - "*"
+
+  # Keep GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    # Group actions updates in a single PR
+    groups:
+      github-actions:
         patterns:
           - "*"
 
