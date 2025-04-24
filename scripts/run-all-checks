@@ -1,0 +1,32 @@
+#!/bin/bash
+# Script to run all CI checks in one go
+
+# Exit on any error
+set -e
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "===== Running all CI checks ====="
+
+# Run editorconfig lint
+echo -e "\n[1/5] Running EditorConfig lint"
+"$SCRIPT_DIR/run-editorconfig-lint"
+
+# Run markdown lint
+echo -e "\n[2/5] Running Markdown lint"
+"$SCRIPT_DIR/run-markdown-lint"
+
+# Run shell script lint
+echo -e "\n[3/5] Running ShellCheck"
+"$SCRIPT_DIR/run-shellcheck"
+
+# Run Python code lint
+echo -e "\n[4/5] Running Python linter"
+"$SCRIPT_DIR/run-lint"
+
+# Run tests
+echo -e "\n[5/5] Running tests"
+"$SCRIPT_DIR/run-tests"
+
+echo -e "\n===== All checks completed successfully! ====="

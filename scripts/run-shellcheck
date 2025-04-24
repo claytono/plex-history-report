@@ -20,7 +20,7 @@ if [ $# -eq 0 ]; then
         if [ -x "$file" ] && [ -f "$file" ]; then
             ARGS+=("$file")
         fi
-    done < <(find bin -type f -not -path "*/\.*")
+    done < <(find bin scripts -type f -not -path "*/\.*")
 else
     # Use array for proper argument handling
     ARGS=("$@")
