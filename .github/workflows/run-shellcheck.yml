@@ -1,4 +1,4 @@
-name: Shell Script Linting
+name: Shell Linting
 
 on:
   pull_request:
@@ -26,6 +26,10 @@ jobs:
         pip install --upgrade pip
         pip install uv
 
-    - name: Run ShellCheck
+    - name: Create venv
       run: |
-        ./bin/run-shellcheck
+        uv venv
+
+    - name: Run shellcheck
+      run: |
+        ./scripts/run-shellcheck

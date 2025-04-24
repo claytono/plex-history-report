@@ -32,4 +32,4 @@ jobs:
 
     - name: Run markdown linter
       run: |
-        ./bin/run-markdown-lint
+        ./scripts/run-markdown-lint

@@ -19,3 +19,5 @@
 - When making a commit, inspect the README.md to determine if the commit message should be updated to
   reflect the changes made.
 - Before making a commit, offer to run the linter and tests to ensure everything is working correctly.
+  Use `./scripts/run-all-checks` to run all checks at once.
+- Always evaluate tools that are available via MCP servers and use them when appropriate.

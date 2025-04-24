@@ -150,7 +150,7 @@ Run the help command for a complete list of options:
 Run the test suite using the included test runner:
 
 ```bash
-./bin/run-tests
+./scripts/run-tests
 ```
 
 ### Code Quality
@@ -158,7 +158,13 @@ Run the test suite using the included test runner:
 Run the linter to ensure code quality:
 
 ```bash
-./bin/run-lint
+./scripts/run-lint
+```
+
+You can also run all checks at once using:
+
+```bash
+./scripts/run-all-checks
 ```
 
 ## License
