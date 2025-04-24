@@ -1,10 +1,12 @@
 # Copilot Instructions for Plex Stats
 
+- This project is hosted on GitHub at `claytono/plex-history-report`.
 - When running `git` commands use `git --no-pager` to avoid paging output.
 - Group multiple commands into logical sets and offer to run them in a single invocation or
   separately.
 - Ensure no trailing whitespace is added to lines and all edited files have a final newline.
 - Use the GitHub MCP tool to track tasks via GitHub issues and pull requests.
+  - ALWAYS use GitHub MCP tools when available instead of shell commands or gh CLI.
   - Ask if new feature requests should be tracked in a GitHub issue.
   - When creating a new pull request, reference the issue number in the pull request title and
     description.
@@ -13,7 +15,18 @@
   - If a task requires multiple steps, ask if I want to break it down into smaller tasks and ask for
     confirmation before proceeding. These sub-tasks should be represented as a checklist in the
     associated issue.
-  - Fall back to using the `gh` cli tool if the GitHub MCP tool is not available.
+  - Only fall back to using the `gh` cli tool if the GitHub MCP tool is not available.
+- Git Workflow:
+  - Before creating a new branch for an issue:
+    - Check for unstaged changes and fetch the latest changes in one step: `git --no-pager status && git fetch origin`
+    - Handle any unstaged changes appropriately (stash, commit, or abort) before proceeding.
+    - Update the default branch with `git checkout main && git pull`.
+    - Create the new branch from the updated default branch: `git checkout -b branch-name`.
+  - Before pushing changes for a pull request:
+    - Update the current branch with the latest changes from the default branch using a single command: `git pull --rebase origin main`
+    - If conflicts occur during rebasing, help resolve them and then continue with `git rebase --continue`.
+    - If the branch has already been pushed remotely, use `git push --force-with-lease` to update it
+      safely after rebasing.
 - Prefer editing files directly using your tools, instead of using shell commands
 - We are using `uv` and use best practices for `uv` in all aspects of this project
 - We are using Python 3 for this project. Use the `python3` binary when invoking Python directly.
