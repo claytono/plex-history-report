@@ -3,12 +3,16 @@
 import json
 import unittest
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import yaml
+from rich.console import Console
 
 from plex_history_report.formatters import (
+    BaseFormatter,
+    CompactFormatter,
     CsvFormatter,
+    FormatterFactory,
     JsonFormatter,
     MarkdownFormatter,
     RichFormatter,
@@ -33,16 +37,14 @@ class TestRounding(unittest.TestCase):
             'rating': 9.1
         }
 
-        # Mock the console to check output
+        # Test with Rich formatter
         formatter = RichFormatter()
-        mock_console = MagicMock()
-        formatter.console = mock_console
+        result = formatter.format_show_statistics([sample_show])
 
-        # Format the show
-        formatter.format_show_statistics([sample_show])
-
-        # Check that the console.print was called with a table
-        mock_console.print.assert_called()
+        # Check that the result contains the rounded percentage
+        self.assertIn('65.9%', result)
+        # We shouldn't see the full unrounded number
+        self.assertNotIn('65.91466666666668', result)
 
     def test_markdown_formatter_rounding(self):
         """Test that MarkdownFormatter correctly rounds percentages."""
@@ -239,16 +241,13 @@ class TestComplexData(unittest.TestCase):
     def test_rich_complex_data(self):
         """Test that RichFormatter correctly handles complex nested data."""
         formatter = RichFormatter()
+        result = formatter.format_show_statistics(self.complex_show_data)
 
-        # Mock console to capture output
-        mock_console = MagicMock()
-        formatter.console = mock_console
-
-        # Format the show
-        formatter.format_show_statistics(self.complex_show_data)
-
-        # Check that the console.print was called
-        mock_console.print.assert_called()
+        # Check that all important elements are included in the output
+        self.assertIn('Complex Show', result)
+        self.assertIn('75.0%', result)
+        self.assertIn('Another Show', result)
+        self.assertIn('100.0%', result)
 
 
 class TestMarkdownLinting(unittest.TestCase):
@@ -348,6 +347,247 @@ class TestMarkdownLinting(unittest.TestCase):
         recent_result = formatter.format_recently_watched([], media_type="show")
         self.assertIn("# Recently Watched Shows", recent_result)
         self.assertIn("No recently watched shows found.", recent_result)
+
+
+class TestFormatterFactory(unittest.TestCase):
+    """Test the FormatterFactory class."""
+
+    def test_get_formatter(self):
+        """Test that get_formatter returns the correct formatter instance."""
+        # Test each formatter type
+        self.assertIsInstance(FormatterFactory.get_formatter("table"), RichFormatter)
+        self.assertIsInstance(FormatterFactory.get_formatter("json"), JsonFormatter)
+        self.assertIsInstance(FormatterFactory.get_formatter("markdown"), MarkdownFormatter)
+        self.assertIsInstance(FormatterFactory.get_formatter("csv"), CsvFormatter)
+        self.assertIsInstance(FormatterFactory.get_formatter("yaml"), YamlFormatter)
+        self.assertIsInstance(FormatterFactory.get_formatter("compact"), CompactFormatter)
+
+    def test_get_formatter_invalid(self):
+        """Test that get_formatter raises ValueError for invalid format names."""
+        with self.assertRaises(ValueError):
+            FormatterFactory.get_formatter("invalid_format")
+
+    def test_register_formatter(self):
+        """Test registering a new formatter type."""
+        # Create a mock formatter class
+        mock_formatter_class = MagicMock()
+        mock_formatter_instance = MagicMock()
+        mock_formatter_class.return_value = mock_formatter_instance
+
+        try:
+            # Register the mock formatter
+            FormatterFactory.register_formatter("mock_format", mock_formatter_class)
+
+            # Verify it's in the available formats
+            self.assertIn("mock_format", FormatterFactory.get_available_formats())
+
+            # Get the formatter and verify it's the correct type
+            formatter = FormatterFactory.get_formatter("mock_format")
+            self.assertEqual(formatter, mock_formatter_instance)
+        finally:
+            # Clean up - remove the mock formatter from the registry
+            if "mock_format" in FormatterFactory._formatters:
+                del FormatterFactory._formatters["mock_format"]
+
+    def test_get_available_formats(self):
+        """Test getting the list of available formats."""
+        formats = FormatterFactory.get_available_formats()
+        self.assertIsInstance(formats, list)
+        self.assertIn("table", formats)
+        self.assertIn("json", formats)
+        self.assertIn("markdown", formats)
+        self.assertIn("csv", formats)
+        self.assertIn("yaml", formats)
+        self.assertIn("compact", formats)
+
+
+class TestBaseFormatterMethods(unittest.TestCase):
+    """Test the new methods in BaseFormatter."""
+
+    def setUp(self):
+        """Set up test data."""
+        # Create a simple formatter that implements the required methods
+        class TestFormatter(BaseFormatter):
+            def format_show_statistics(self, stats):
+                return f"Shows: {len(stats)} items"
+
+            def format_movie_statistics(self, stats):
+                return f"Movies: {len(stats)} items"
+
+            def format_recently_watched(self, stats, media_type="show"):
+                return f"Recently watched {media_type}s: {len(stats)} items"
+
+        self.formatter = TestFormatter()
+        self.show_stats = [{'title': 'Show1'}, {'title': 'Show2'}]
+        self.movie_stats = [{'title': 'Movie1'}, {'title': 'Movie2'}, {'title': 'Movie3'}]
+        self.recently_watched = [{'title': 'Recent1'}, {'title': 'Recent2'}]
+
+    def test_format_content_shows(self):
+        """Test format_content with show statistics."""
+        outputs = self.formatter.format_content(
+            self.show_stats, media_type="show", show_recent=False)
+        self.assertEqual(len(outputs), 1)
+        self.assertEqual(outputs[0], "Shows: 2 items")
+
+    def test_format_content_movies(self):
+        """Test format_content with movie statistics."""
+        outputs = self.formatter.format_content(
+            self.movie_stats, media_type="movie", show_recent=False)
+        self.assertEqual(len(outputs), 1)
+        self.assertEqual(outputs[0], "Movies: 3 items")
+
+    def test_format_content_with_recent(self):
+        """Test format_content with recently watched content."""
+        outputs = self.formatter.format_content(
+            self.show_stats, media_type="show",
+            show_recent=True, recently_watched=self.recently_watched)
+        self.assertEqual(len(outputs), 2)
+        self.assertEqual(outputs[0], "Shows: 2 items")
+        self.assertEqual(outputs[1], "Recently watched shows: 2 items")
+
+    def test_display_output(self):
+        """Test displaying output to the console."""
+        mock_console = MagicMock(spec=Console)
+        outputs = ["Output 1", "Output 2", ""]  # Include an empty output that should be skipped
+
+        self.formatter.display_output(mock_console, outputs)
+
+        # Verify console.print was called for non-empty outputs
+        self.assertEqual(mock_console.print.call_count, 2)
+        mock_console.print.assert_any_call("Output 1")
+        mock_console.print.assert_any_call("Output 2")
+
+
+class TestIntegratedFormatting(unittest.TestCase):
+    """Test the integration between the formatter factory and output methods."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.stats = [
+            {
+                'title': 'Test Item',
+                'total_episodes': 10,
+                'watched_episodes': 5,
+                'completion_percentage': 50.0,
+                'total_watch_time_minutes': 150,
+                'last_watched': datetime(2023, 4, 1, 12, 0, 0),
+                'year': 2020,
+                'rating': 8.5
+            }
+        ]
+
+        # Create test data that works for both show and movie formatters
+        self.versatile_stats = [
+            {
+                'title': 'Versatile Item',
+                # Show fields
+                'total_episodes': 10,
+                'watched_episodes': 5,
+                'completion_percentage': 50.0,
+                'total_watch_time_minutes': 150,
+                # Movie fields
+                'watched': True,
+                'watch_count': 2,
+                'duration_minutes': 120,
+                # Common fields
+                'last_watched': datetime(2023, 4, 1, 12, 0, 0),
+                'year': 2020,
+                'rating': 8.5
+            }
+        ]
+
+        self.recently_watched = [
+            {
+                'title': 'Recent Item',
+                # Show fields
+                'total_episodes': 10,
+                'watched_episodes': 2,
+                'completion_percentage': 20.0,
+                'total_watch_time_minutes': 60,
+                # Movie fields
+                'watched': True,
+                'watch_count': 1,
+                'duration_minutes': 90,
+                # Common fields
+                'last_watched': datetime(2023, 4, 15, 12, 0, 0),
+                'year': 2022,
+                'rating': 9.0
+            }
+        ]
+
+    def test_json_format_content(self):
+        """Test using format_content with JSON formatter."""
+        formatter = FormatterFactory.get_formatter("json")
+        outputs = formatter.format_content(
+            self.stats, media_type="show",
+            show_recent=True, recently_watched=self.recently_watched)
+
+        self.assertEqual(len(outputs), 2)
+
+        # Verify both outputs are valid JSON
+        main_data = json.loads(outputs[0])
+        self.assertEqual(len(main_data["shows"]), 1)
+        self.assertEqual(main_data["shows"][0]["title"], "Test Item")
+
+        recent_data = json.loads(outputs[1])
+        self.assertEqual(len(recent_data["recently_watched_shows"]), 1)
+        self.assertEqual(recent_data["recently_watched_shows"][0]["title"], "Recent Item")
+
+    def test_yaml_format_content(self):
+        """Test using format_content with YAML formatter."""
+        formatter = FormatterFactory.get_formatter("yaml")
+        outputs = formatter.format_content(
+            self.versatile_stats, media_type="movie",
+            show_recent=True, recently_watched=self.recently_watched)
+
+        self.assertEqual(len(outputs), 2)
+
+        # Verify both outputs are valid YAML
+        main_data = yaml.safe_load(outputs[0])
+        self.assertIn("movies", main_data)
+        self.assertEqual(len(main_data["movies"]), 1)
+
+        recent_data = yaml.safe_load(outputs[1])
+        self.assertIn("recently_watched_movies", recent_data)
+        self.assertEqual(len(recent_data["recently_watched_movies"]), 1)
+
+    def test_compact_format_content(self):
+        """Test using format_content with Compact formatter."""
+        formatter = FormatterFactory.get_formatter("compact")
+        outputs = formatter.format_content(
+            self.stats, media_type="show",
+            show_recent=True, recently_watched=self.recently_watched)
+
+        self.assertEqual(len(outputs), 2)
+        # Compact formatter should have a minimal representation with pipes
+        self.assertIn("|", outputs[0])
+        self.assertIn("|", outputs[1])
+        self.assertIn("Test Item", outputs[0])
+        self.assertIn("Recent Item", outputs[1])
+
+    @patch("plex_history_report.formatters.RichFormatter.format_show_statistics")
+    @patch("plex_history_report.formatters.RichFormatter.format_recently_watched")
+    def test_rich_formatter_direct_methods(self, mock_format_recent, mock_format_show):
+        """Test that RichFormatter's methods are called correctly."""
+        formatter = FormatterFactory.get_formatter("table")
+
+        # Set up mocks to return string values (as now expected)
+        mock_format_show.return_value = "Mock show statistics"
+        mock_format_recent.return_value = "Mock recently watched"
+
+        # Call format_content
+        outputs = formatter.format_content(
+            self.stats, media_type="show",
+            show_recent=True, recently_watched=self.recently_watched)
+
+        # Verify the underlying methods were called
+        mock_format_show.assert_called_once_with(self.stats)
+        mock_format_recent.assert_called_once_with(self.recently_watched, media_type="show")
+
+        # Check that the returned strings are included in the output
+        self.assertEqual(len(outputs), 2)
+        self.assertEqual(outputs[0], "Mock show statistics")
+        self.assertEqual(outputs[1], "Mock recently watched")
 
 
 if __name__ == '__main__':

@@ -44,9 +44,10 @@ class TestCLIParser(unittest.TestCase):
     def test_detailed_to_show_recent_mapping(self):
         """Test that --detailed maps to --show-recent."""
         # Create a mock object for run function's dependencies
+        mock_formatter = MagicMock()
         with patch('plex_history_report.cli.load_config'), \
              patch('plex_history_report.cli.PlexClient'), \
-             patch('plex_history_report.cli.RichFormatter'):
+             patch('plex_history_report.cli.FormatterFactory.get_formatter', return_value=mock_formatter):
 
             # Parse args with --detailed
             args = self.parser.parse_args(['--tv', '--detailed'])
@@ -79,10 +80,11 @@ class TestCLIParser(unittest.TestCase):
         # Create a mock PlexClient that returns our test data
         mock_client = MagicMock()
         mock_client.get_all_movie_statistics.return_value = mock_movies
+        mock_formatter = MagicMock()
 
         with patch('plex_history_report.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
              patch('plex_history_report.cli.PlexClient', return_value=mock_client), \
-             patch('plex_history_report.cli.RichFormatter'), \
+             patch('plex_history_report.cli.FormatterFactory.get_formatter', return_value=mock_formatter), \
              patch('plex_history_report.cli.Console', return_value=MagicMock()), \
              patch('plex_history_report.cli.logger'):
 
@@ -120,10 +122,11 @@ class TestCLIParser(unittest.TestCase):
         # Create a mock PlexClient that returns our test data
         mock_client = MagicMock()
         mock_client.get_all_show_statistics.return_value = mock_shows
+        mock_formatter = MagicMock()
 
         with patch('plex_history_report.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
              patch('plex_history_report.cli.PlexClient', return_value=mock_client), \
-             patch('plex_history_report.cli.RichFormatter'), \
+             patch('plex_history_report.cli.FormatterFactory.get_formatter', return_value=mock_formatter), \
              patch('plex_history_report.cli.Console', return_value=MagicMock()), \
              patch('plex_history_report.cli.logger'):
 
@@ -151,12 +154,13 @@ class TestCLIParser(unittest.TestCase):
         """Test that debug logging is enabled when --debug flag is used."""
         # Create a mock for plex_history_report.cli.logger directly
         mock_logger = MagicMock()
+        mock_formatter = MagicMock()
 
         # Now patch dependencies including the logger in cli.py
         with patch('plex_history_report.cli.logger', mock_logger), \
              patch('plex_history_report.cli.load_config'), \
              patch('plex_history_report.cli.PlexClient'), \
-             patch('plex_history_report.cli.RichFormatter'), \
+             patch('plex_history_report.cli.FormatterFactory.get_formatter', return_value=mock_formatter), \
              patch('plex_history_report.cli.Console', return_value=MagicMock()):
 
             # Parse args with --debug
@@ -185,10 +189,11 @@ class TestCLIParser(unittest.TestCase):
         # Create a mock PlexClient that returns our test data
         mock_client = MagicMock()
         mock_client.get_all_show_statistics.return_value = mock_shows
+        mock_formatter = MagicMock()
 
         with patch('plex_history_report.cli.load_config', return_value={'plex': {'base_url': 'test', 'token': 'test'}}), \
              patch('plex_history_report.cli.PlexClient', return_value=mock_client), \
-             patch('plex_history_report.cli.RichFormatter'), \
+             patch('plex_history_report.cli.FormatterFactory.get_formatter', return_value=mock_formatter), \
              patch('plex_history_report.cli.Console', return_value=MagicMock()), \
              patch('plex_history_report.cli.logger'):
 
