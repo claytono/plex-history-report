@@ -904,7 +904,7 @@ class CompactFormatter(BaseFormatter):
             return "NoShows"
 
         # Use short but descriptive column headers
-        lines = ["Title|Watched|Total|WatchTime"]
+        lines = ["Title|WatchedEps|TotalEps|WatchTime"]
 
         # Add rows for each show with minimal separators
         for show in stats:
@@ -918,18 +918,6 @@ class CompactFormatter(BaseFormatter):
 
             # Create compact row
             lines.append(f"{title}|{show['watched_episodes']}|{show['total_episodes']}|{watch_time}")
-
-        # Add compact summary (S: for summary)
-        total_shows = len(stats)
-        watched_shows = sum(1 for show in stats if show['watched_episodes'] > 0)
-        total_episodes = sum(show['total_episodes'] for show in stats)
-        watched_episodes = sum(show['watched_episodes'] for show in stats)
-        total_watch_time = sum(show['total_watch_time_minutes'] for show in stats)
-
-        hours = int(total_watch_time // 60)
-        minutes = int(total_watch_time % 60)
-
-        lines.append(f"Summary: TotalShows={total_shows} WatchedShows={watched_shows} Episodes={watched_episodes}/{total_episodes} TotalWatchTime={hours}h{minutes}m")
 
         return "\n".join(lines)
 
@@ -972,20 +960,6 @@ class CompactFormatter(BaseFormatter):
 
             # Create compact row
             lines.append(f"{title}|{movie['watch_count']}|{formatted_date}|{duration}|{rating}")
-
-        # Add compact summary
-        total_movies = len(stats)
-        watched_movies = sum(1 for movie in stats if movie['watched'])
-        watch_count = sum(movie['watch_count'] for movie in stats)
-        total_duration = sum(movie['duration_minutes'] for movie in stats)
-        watched_duration = sum(movie['duration_minutes'] * movie['watch_count'] for movie in stats if movie['watched'])
-
-        tot_h = int(total_duration // 60)
-        tot_m = int(total_duration % 60)
-        wat_h = int(watched_duration // 60)
-        wat_m = int(watched_duration % 60)
-
-        lines.append(f"Summary: TotalMovies={total_movies} WatchedMovies={watched_movies} TotalWatches={watch_count} TotalDuration={tot_h}h{tot_m}m WatchedDuration={wat_h}h{wat_m}m")
 
         return "\n".join(lines)
 
