@@ -33,6 +33,5 @@ htmlcov/
 
 # Project-specific
 config.yaml
-TODO.md
 test_output/
 .bin/
