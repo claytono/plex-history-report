@@ -18,6 +18,7 @@ DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config.yaml"
 
 class ConfigError(Exception):
     """Raised when there's an issue with the configuration."""
+
     pass
 
 
@@ -47,17 +48,17 @@ def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
         if not config or not isinstance(config, dict):
             raise ConfigError("Invalid configuration format")
 
-        if 'plex' not in config:
+        if "plex" not in config:
             raise ConfigError("Missing 'plex' section in configuration")
 
-        plex_config = config['plex']
-        if 'base_url' not in plex_config:
+        plex_config = config["plex"]
+        if "base_url" not in plex_config:
             raise ConfigError("Missing 'base_url' in plex configuration")
-        if 'token' not in plex_config:
+        if "token" not in plex_config:
             raise ConfigError("Missing 'token' in plex configuration")
 
         # User is optional, will be validated but not required
-        if 'default_user' in plex_config and not isinstance(plex_config['default_user'], str):
+        if "default_user" in plex_config and not isinstance(plex_config["default_user"], str):
             raise ConfigError("'default_user' must be a string")
 
         return config
@@ -83,14 +84,14 @@ def create_default_config(config_path: Optional[Path] = None) -> Path:
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
     default_config = {
-        'plex': {
-            'base_url': 'http://localhost:32400',
-            'token': 'YOUR_PLEX_TOKEN',
-            'default_user': '',  # Empty string means no default user
+        "plex": {
+            "base_url": "http://localhost:32400",
+            "token": "YOUR_PLEX_TOKEN",
+            "default_user": "",  # Empty string means no default user
         }
     }
 
-    with config_path.open('w') as f:
+    with config_path.open("w") as f:
         yaml.dump(default_config, f, default_flow_style=False)
 
     return config_path

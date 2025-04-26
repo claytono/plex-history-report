@@ -31,15 +31,17 @@ class CompactFormatter(BaseFormatter):
         # Add rows for each show with minimal separators
         for show in stats:
             # Format watch time compactly
-            hours = int(show['total_watch_time_minutes'] // 60)
-            minutes = int(show['total_watch_time_minutes'] % 60)
+            hours = int(show["total_watch_time_minutes"] // 60)
+            minutes = int(show["total_watch_time_minutes"] % 60)
             watch_time = f"{hours}h{minutes}m" if hours > 0 else f"{minutes}m"
 
             # Clean title for delimiter use
-            title = show['title'].replace('|', '/')
+            title = show["title"].replace("|", "/")
 
             # Create compact row
-            lines.append(f"{title}|{show['watched_episodes']}|{show['total_episodes']}|{watch_time}")
+            lines.append(
+                f"{title}|{show['watched_episodes']}|{show['total_episodes']}|{watch_time}"
+            )
 
         return "\n".join(lines)
 
@@ -61,7 +63,7 @@ class CompactFormatter(BaseFormatter):
         # Add rows for each movie
         for movie in stats:
             # Format last watched date compactly
-            last_watched = movie['last_watched']
+            last_watched = movie["last_watched"]
             formatted_date = "-"
             if last_watched:
                 # Convert to datetime and format
@@ -70,15 +72,15 @@ class CompactFormatter(BaseFormatter):
                 formatted_date = last_watched.strftime("%y-%m-%d")  # Shorter year format
 
             # Format duration compactly
-            hours = int(movie['duration_minutes'] // 60)
-            minutes = int(movie['duration_minutes'] % 60)
+            hours = int(movie["duration_minutes"] // 60)
+            minutes = int(movie["duration_minutes"] % 60)
             duration = f"{hours}h{minutes}m" if hours > 0 else f"{minutes}m"
 
             # Format rating
-            rating = f"{movie['rating']}" if movie['rating'] else "-"
+            rating = f"{movie['rating']}" if movie["rating"] else "-"
 
             # Clean title for delimiter use
-            title = movie['title'].replace('|', '/')
+            title = movie["title"].replace("|", "/")
 
             # Create compact row
             lines.append(f"{title}|{movie['watch_count']}|{formatted_date}|{duration}|{rating}")
@@ -104,7 +106,7 @@ class CompactFormatter(BaseFormatter):
 
             for show in stats:
                 # Format last watched date compactly
-                last_watched = show['last_watched']
+                last_watched = show["last_watched"]
                 formatted_date = "Never"
                 if last_watched:
                     # Convert to datetime and format
@@ -113,15 +115,15 @@ class CompactFormatter(BaseFormatter):
                     formatted_date = last_watched.strftime("%y-%m-%d")  # Shorter year format
 
                 # Format watch time compactly
-                hours = int(show['total_watch_time_minutes'] // 60)
-                minutes = int(show['total_watch_time_minutes'] % 60)
+                hours = int(show["total_watch_time_minutes"] // 60)
+                minutes = int(show["total_watch_time_minutes"] % 60)
                 watch_time = f"{hours}h{minutes}m" if hours > 0 else f"{minutes}m"
 
                 # Format progress without percentage
                 progress = f"{show['watched_episodes']}/{show['total_episodes']}"
 
                 # Clean title for delimiter use
-                title = show['title'].replace('|', '/')
+                title = show["title"].replace("|", "/")
 
                 lines.append(f"{title}|{formatted_date}|{progress}|{watch_time}")
         else:  # movies
@@ -130,7 +132,7 @@ class CompactFormatter(BaseFormatter):
 
             for movie in stats:
                 # Format last watched date compactly
-                last_watched = movie['last_watched']
+                last_watched = movie["last_watched"]
                 formatted_date = "Never"
                 if last_watched:
                     # Convert to datetime and format
@@ -139,12 +141,12 @@ class CompactFormatter(BaseFormatter):
                     formatted_date = last_watched.strftime("%y-%m-%d")  # Shorter year format
 
                 # Format duration compactly
-                hours = int(movie['duration_minutes'] // 60)
-                minutes = int(movie['duration_minutes'] % 60)
+                hours = int(movie["duration_minutes"] // 60)
+                minutes = int(movie["duration_minutes"] % 60)
                 duration = f"{hours}h{minutes}m" if hours > 0 else f"{minutes}m"
 
                 # Clean title for delimiter use
-                title = movie['title'].replace('|', '/')
+                title = movie["title"].replace("|", "/")
 
                 lines.append(f"{title}|{formatted_date}|{movie['watch_count']}|{duration}")
 

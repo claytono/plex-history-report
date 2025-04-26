@@ -32,6 +32,9 @@ plex-history-report = "plex_history_report.cli:main"
 [tool.setuptools]
 packages = ["plex_history_report"]
 
+[tool.black]
+line-length = 100
+
 [tool.ruff]
 target-version = "py38"
 line-length = 100

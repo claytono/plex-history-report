@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Script to auto-fix Python code issues with Ruff via uvx
+
+# Exit on any error
+set -e
+
+echo "Applying Ruff fixes..."
+uvx ruff check --fix --line-length 100 plex_history_report tests

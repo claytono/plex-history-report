@@ -27,14 +27,14 @@ class TestRounding(unittest.TestCase):
         """Test that RichFormatter correctly rounds percentages."""
         # Create a sample show with an uneven percentage
         sample_show = {
-            'title': 'Test Show',
-            'total_episodes': 100,
-            'watched_episodes': 65,
-            'completion_percentage': 65.91466666666668,
-            'total_watch_time_minutes': 123.4567,
-            'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-            'year': 2020,
-            'rating': 9.1
+            "title": "Test Show",
+            "total_episodes": 100,
+            "watched_episodes": 65,
+            "completion_percentage": 65.91466666666668,
+            "total_watch_time_minutes": 123.4567,
+            "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+            "year": 2020,
+            "rating": 9.1,
         }
 
         # Test with Rich formatter
@@ -42,22 +42,22 @@ class TestRounding(unittest.TestCase):
         result = formatter.format_show_statistics([sample_show])
 
         # Check that the result contains the rounded percentage
-        self.assertIn('65.9%', result)
+        self.assertIn("65.9%", result)
         # We shouldn't see the full unrounded number
-        self.assertNotIn('65.91466666666668', result)
+        self.assertNotIn("65.91466666666668", result)
 
     def test_markdown_formatter_rounding(self):
         """Test that MarkdownFormatter correctly rounds percentages."""
         # Create a sample show with an uneven percentage
         sample_show = {
-            'title': 'Test Show',
-            'total_episodes': 100,
-            'watched_episodes': 65,
-            'completion_percentage': 65.91466666666668,
-            'total_watch_time_minutes': 123.4567,
-            'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-            'year': 2020,
-            'rating': 9.1
+            "title": "Test Show",
+            "total_episodes": 100,
+            "watched_episodes": 65,
+            "completion_percentage": 65.91466666666668,
+            "total_watch_time_minutes": 123.4567,
+            "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+            "year": 2020,
+            "rating": 9.1,
         }
 
         # Test with Markdown formatter
@@ -65,22 +65,22 @@ class TestRounding(unittest.TestCase):
         result = formatter.format_show_statistics([sample_show])
 
         # Check that the percentage is rounded to 1 decimal place
-        self.assertIn('65.9%', result)
+        self.assertIn("65.9%", result)
         # We shouldn't see the full unrounded number
-        self.assertNotIn('65.91466666666668', result)
+        self.assertNotIn("65.91466666666668", result)
 
     def test_json_formatter_output(self):
         """Test that JsonFormatter produces valid output with numbers."""
         # Create a sample show with an uneven percentage
         sample_show = {
-            'title': 'Test Show',
-            'total_episodes': 100,
-            'watched_episodes': 65,
-            'completion_percentage': 65.91466666666668,
-            'total_watch_time_minutes': 123.4567,
-            'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-            'year': 2020,
-            'rating': 9.1
+            "title": "Test Show",
+            "total_episodes": 100,
+            "watched_episodes": 65,
+            "completion_percentage": 65.91466666666668,
+            "total_watch_time_minutes": 123.4567,
+            "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+            "year": 2020,
+            "rating": 9.1,
         }
 
         # Test with JSON formatter
@@ -90,20 +90,20 @@ class TestRounding(unittest.TestCase):
         # The result should be valid JSON
         data = json.loads(result)
         # We expect the original value to be preserved in JSON output
-        self.assertEqual(data['shows'][0]['completion_percentage'], 65.9)
+        self.assertEqual(data["shows"][0]["completion_percentage"], 65.9)
 
     def test_csv_formatter_rounding(self):
         """Test that CsvFormatter correctly rounds percentages."""
         # Create a sample show with an uneven percentage
         sample_show = {
-            'title': 'Test Show',
-            'total_episodes': 100,
-            'watched_episodes': 65,
-            'completion_percentage': 65.91466666666668,
-            'total_watch_time_minutes': 123.4567,
-            'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-            'year': 2020,
-            'rating': 9.1
+            "title": "Test Show",
+            "total_episodes": 100,
+            "watched_episodes": 65,
+            "completion_percentage": 65.91466666666668,
+            "total_watch_time_minutes": 123.4567,
+            "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+            "year": 2020,
+            "rating": 9.1,
         }
 
         # Test with CSV formatter
@@ -111,22 +111,22 @@ class TestRounding(unittest.TestCase):
         result = formatter.format_show_statistics([sample_show])
 
         # Check that the CSV contains the rounded percentage
-        self.assertIn('65.9', result)
+        self.assertIn("65.9", result)
         # We shouldn't see the full unrounded number
-        self.assertNotIn('65.91466666666668', result)
+        self.assertNotIn("65.91466666666668", result)
 
     def test_yaml_formatter_output(self):
         """Test that YamlFormatter produces valid output with numbers."""
         # Create a sample show with an uneven percentage
         sample_show = {
-            'title': 'Test Show',
-            'total_episodes': 100,
-            'watched_episodes': 65,
-            'completion_percentage': 65.91466666666668,
-            'total_watch_time_minutes': 123.4567,
-            'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-            'year': 2020,
-            'rating': 9.1
+            "title": "Test Show",
+            "total_episodes": 100,
+            "watched_episodes": 65,
+            "completion_percentage": 65.91466666666668,
+            "total_watch_time_minutes": 123.4567,
+            "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+            "year": 2020,
+            "rating": 9.1,
         }
 
         # Test with YAML formatter
@@ -136,7 +136,7 @@ class TestRounding(unittest.TestCase):
         # The result should be valid YAML
         data = yaml.safe_load(result)
         # We expect the original value to be preserved in YAML output
-        self.assertEqual(data['shows'][0]['completion_percentage'], 65.9)
+        self.assertEqual(data["shows"][0]["completion_percentage"], 65.9)
 
 
 class TestComplexData(unittest.TestCase):
@@ -147,42 +147,42 @@ class TestComplexData(unittest.TestCase):
         # Create a complex nested data structure with shows that have recent episodes
         self.complex_show_data = [
             {
-                'title': 'Complex Show',
-                'year': 2022,
-                'rating': 8.7,
-                'total_episodes': 20,
-                'watched_episodes': 15,
-                'completion_percentage': 75.0,
-                'total_watch_time_minutes': 450,
-                'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-                'recent_episodes': [
+                "title": "Complex Show",
+                "year": 2022,
+                "rating": 8.7,
+                "total_episodes": 20,
+                "watched_episodes": 15,
+                "completion_percentage": 75.0,
+                "total_watch_time_minutes": 450,
+                "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+                "recent_episodes": [
                     {
-                        'title': 'Episode 1',
-                        'season': 1,
-                        'episode': 1,
-                        'watch_date': datetime(2023, 3, 15, 12, 0, 0),
-                        'duration_minutes': 30
+                        "title": "Episode 1",
+                        "season": 1,
+                        "episode": 1,
+                        "watch_date": datetime(2023, 3, 15, 12, 0, 0),
+                        "duration_minutes": 30,
                     },
                     {
-                        'title': 'Episode 2',
-                        'season': 1,
-                        'episode': 2,
-                        'watch_date': datetime(2023, 3, 16, 12, 0, 0),
-                        'duration_minutes': 30
-                    }
-                ]
+                        "title": "Episode 2",
+                        "season": 1,
+                        "episode": 2,
+                        "watch_date": datetime(2023, 3, 16, 12, 0, 0),
+                        "duration_minutes": 30,
+                    },
+                ],
             },
             {
-                'title': 'Another Show',
-                'year': 2021,
-                'rating': 9.2,
-                'total_episodes': 10,
-                'watched_episodes': 10,
-                'completion_percentage': 100.0,
-                'total_watch_time_minutes': 300,
-                'last_watched': datetime(2023, 3, 30, 12, 0, 0),
-                'recent_episodes': []  # No recent episodes
-            }
+                "title": "Another Show",
+                "year": 2021,
+                "rating": 9.2,
+                "total_episodes": 10,
+                "watched_episodes": 10,
+                "completion_percentage": 100.0,
+                "total_watch_time_minutes": 300,
+                "last_watched": datetime(2023, 3, 30, 12, 0, 0),
+                "recent_episodes": [],  # No recent episodes
+            },
         ]
 
     def test_json_complex_data(self):
@@ -194,10 +194,10 @@ class TestComplexData(unittest.TestCase):
         data = json.loads(result)
 
         # Check structure is preserved
-        self.assertEqual(len(data['shows']), 2)
-        self.assertEqual(data['shows'][0]['title'], 'Complex Show')
-        self.assertEqual(len(data['shows'][0]['recent_episodes']), 2)
-        self.assertEqual(data['shows'][0]['recent_episodes'][0]['title'], 'Episode 1')
+        self.assertEqual(len(data["shows"]), 2)
+        self.assertEqual(data["shows"][0]["title"], "Complex Show")
+        self.assertEqual(len(data["shows"][0]["recent_episodes"]), 2)
+        self.assertEqual(data["shows"][0]["recent_episodes"][0]["title"], "Episode 1")
 
     def test_yaml_complex_data(self):
         """Test that YamlFormatter correctly handles complex nested data."""
@@ -208,10 +208,10 @@ class TestComplexData(unittest.TestCase):
         data = yaml.safe_load(result)
 
         # Check structure is preserved
-        self.assertEqual(len(data['shows']), 2)
-        self.assertEqual(data['shows'][0]['title'], 'Complex Show')
-        self.assertEqual(len(data['shows'][0]['recent_episodes']), 2)
-        self.assertEqual(data['shows'][0]['recent_episodes'][0]['title'], 'Episode 1')
+        self.assertEqual(len(data["shows"]), 2)
+        self.assertEqual(data["shows"][0]["title"], "Complex Show")
+        self.assertEqual(len(data["shows"][0]["recent_episodes"]), 2)
+        self.assertEqual(data["shows"][0]["recent_episodes"][0]["title"], "Episode 1")
 
     def test_markdown_complex_data(self):
         """Test that MarkdownFormatter correctly handles complex nested data."""
@@ -219,12 +219,12 @@ class TestComplexData(unittest.TestCase):
         result = formatter.format_show_statistics(self.complex_show_data)
 
         # Check that all important elements are included in the markdown
-        self.assertIn('Complex Show', result)
-        self.assertIn('75.0%', result)
+        self.assertIn("Complex Show", result)
+        self.assertIn("75.0%", result)
         # Episodes aren't actually included in the standard show statistics markdown output
         # They would only appear in the recently watched output
-        self.assertIn('Another Show', result)
-        self.assertIn('100.0%', result)
+        self.assertIn("Another Show", result)
+        self.assertIn("100.0%", result)
 
     def test_csv_complex_data(self):
         """Test that CsvFormatter correctly handles complex nested data."""
@@ -232,8 +232,8 @@ class TestComplexData(unittest.TestCase):
         result = formatter.format_show_statistics(self.complex_show_data)
 
         # CSV should contain the show titles
-        self.assertIn('Complex Show', result)
-        self.assertIn('Another Show', result)
+        self.assertIn("Complex Show", result)
+        self.assertIn("Another Show", result)
 
         # CSV typically flattens data, so recent episodes might not be included
         # or might be represented in a simplified way
@@ -244,10 +244,10 @@ class TestComplexData(unittest.TestCase):
         result = formatter.format_show_statistics(self.complex_show_data)
 
         # Check that all important elements are included in the output
-        self.assertIn('Complex Show', result)
-        self.assertIn('75.0%', result)
-        self.assertIn('Another Show', result)
-        self.assertIn('100.0%', result)
+        self.assertIn("Complex Show", result)
+        self.assertIn("75.0%", result)
+        self.assertIn("Another Show", result)
+        self.assertIn("100.0%", result)
 
 
 class TestMarkdownLinting(unittest.TestCase):
@@ -256,14 +256,14 @@ class TestMarkdownLinting(unittest.TestCase):
     def setUp(self):
         """Set up test data with edge cases for markdown formatting."""
         self.show_with_special_chars = {
-            'title': 'Test Show | with | pipes',  # Title with pipe chars that need escaping
-            'total_episodes': 10,
-            'watched_episodes': 5,
-            'completion_percentage': 50.0,
-            'total_watch_time_minutes': 150,
-            'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-            'year': 2020,
-            'rating': 8.5
+            "title": "Test Show | with | pipes",  # Title with pipe chars that need escaping
+            "total_episodes": 10,
+            "watched_episodes": 5,
+            "completion_percentage": 50.0,
+            "total_watch_time_minutes": 150,
+            "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+            "year": 2020,
+            "rating": 8.5,
         }
 
     def test_markdown_table_format(self):
@@ -288,7 +288,9 @@ class TestMarkdownLinting(unittest.TestCase):
     def test_markdown_recently_watched_format(self):
         """Test that recently watched markdown is properly formatted."""
         formatter = MarkdownFormatter()
-        result = formatter.format_recently_watched([self.show_with_special_chars], media_type="show")
+        result = formatter.format_recently_watched(
+            [self.show_with_special_chars], media_type="show"
+        )
 
         # Check for proper markdown heading format
         self.assertIn("# Recently Watched Shows", result)
@@ -303,13 +305,13 @@ class TestMarkdownLinting(unittest.TestCase):
     def test_markdown_movie_statistics_format(self):
         """Test that movie statistics markdown is properly formatted."""
         movie_with_special_chars = {
-            'title': 'Movie | with | pipes',
-            'year': 2021,
-            'watch_count': 2,
-            'last_watched': datetime(2023, 5, 15, 20, 30, 0),
-            'duration_minutes': 120,
-            'watched': True,
-            'rating': 9.0
+            "title": "Movie | with | pipes",
+            "year": 2021,
+            "watch_count": 2,
+            "last_watched": datetime(2023, 5, 15, 20, 30, 0),
+            "duration_minutes": 120,
+            "watched": True,
+            "rating": 9.0,
         }
 
         formatter = MarkdownFormatter()
@@ -406,6 +408,7 @@ class TestBaseFormatterMethods(unittest.TestCase):
 
     def setUp(self):
         """Set up test data."""
+
         # Create a simple formatter that implements the required methods
         class TestFormatter(BaseFormatter):
             def format_show_statistics(self, stats):
@@ -418,29 +421,34 @@ class TestBaseFormatterMethods(unittest.TestCase):
                 return f"Recently watched {media_type}s: {len(stats)} items"
 
         self.formatter = TestFormatter()
-        self.show_stats = [{'title': 'Show1'}, {'title': 'Show2'}]
-        self.movie_stats = [{'title': 'Movie1'}, {'title': 'Movie2'}, {'title': 'Movie3'}]
-        self.recently_watched = [{'title': 'Recent1'}, {'title': 'Recent2'}]
+        self.show_stats = [{"title": "Show1"}, {"title": "Show2"}]
+        self.movie_stats = [{"title": "Movie1"}, {"title": "Movie2"}, {"title": "Movie3"}]
+        self.recently_watched = [{"title": "Recent1"}, {"title": "Recent2"}]
 
     def test_format_content_shows(self):
         """Test format_content with show statistics."""
         outputs = self.formatter.format_content(
-            self.show_stats, media_type="show", show_recent=False)
+            self.show_stats, media_type="show", show_recent=False
+        )
         self.assertEqual(len(outputs), 1)
         self.assertEqual(outputs[0], "Shows: 2 items")
 
     def test_format_content_movies(self):
         """Test format_content with movie statistics."""
         outputs = self.formatter.format_content(
-            self.movie_stats, media_type="movie", show_recent=False)
+            self.movie_stats, media_type="movie", show_recent=False
+        )
         self.assertEqual(len(outputs), 1)
         self.assertEqual(outputs[0], "Movies: 3 items")
 
     def test_format_content_with_recent(self):
         """Test format_content with recently watched content."""
         outputs = self.formatter.format_content(
-            self.show_stats, media_type="show",
-            show_recent=True, recently_watched=self.recently_watched)
+            self.show_stats,
+            media_type="show",
+            show_recent=True,
+            recently_watched=self.recently_watched,
+        )
         self.assertEqual(len(outputs), 2)
         self.assertEqual(outputs[0], "Shows: 2 items")
         self.assertEqual(outputs[1], "Recently watched shows: 2 items")
@@ -465,53 +473,53 @@ class TestIntegratedFormatting(unittest.TestCase):
         """Set up test data."""
         self.stats = [
             {
-                'title': 'Test Item',
-                'total_episodes': 10,
-                'watched_episodes': 5,
-                'completion_percentage': 50.0,
-                'total_watch_time_minutes': 150,
-                'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-                'year': 2020,
-                'rating': 8.5
+                "title": "Test Item",
+                "total_episodes": 10,
+                "watched_episodes": 5,
+                "completion_percentage": 50.0,
+                "total_watch_time_minutes": 150,
+                "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+                "year": 2020,
+                "rating": 8.5,
             }
         ]
 
         # Create test data that works for both show and movie formatters
         self.versatile_stats = [
             {
-                'title': 'Versatile Item',
+                "title": "Versatile Item",
                 # Show fields
-                'total_episodes': 10,
-                'watched_episodes': 5,
-                'completion_percentage': 50.0,
-                'total_watch_time_minutes': 150,
+                "total_episodes": 10,
+                "watched_episodes": 5,
+                "completion_percentage": 50.0,
+                "total_watch_time_minutes": 150,
                 # Movie fields
-                'watched': True,
-                'watch_count': 2,
-                'duration_minutes': 120,
+                "watched": True,
+                "watch_count": 2,
+                "duration_minutes": 120,
                 # Common fields
-                'last_watched': datetime(2023, 4, 1, 12, 0, 0),
-                'year': 2020,
-                'rating': 8.5
+                "last_watched": datetime(2023, 4, 1, 12, 0, 0),
+                "year": 2020,
+                "rating": 8.5,
             }
         ]
 
         self.recently_watched = [
             {
-                'title': 'Recent Item',
+                "title": "Recent Item",
                 # Show fields
-                'total_episodes': 10,
-                'watched_episodes': 2,
-                'completion_percentage': 20.0,
-                'total_watch_time_minutes': 60,
+                "total_episodes": 10,
+                "watched_episodes": 2,
+                "completion_percentage": 20.0,
+                "total_watch_time_minutes": 60,
                 # Movie fields
-                'watched': True,
-                'watch_count': 1,
-                'duration_minutes': 90,
+                "watched": True,
+                "watch_count": 1,
+                "duration_minutes": 90,
                 # Common fields
-                'last_watched': datetime(2023, 4, 15, 12, 0, 0),
-                'year': 2022,
-                'rating': 9.0
+                "last_watched": datetime(2023, 4, 15, 12, 0, 0),
+                "year": 2022,
+                "rating": 9.0,
             }
         ]
 
@@ -519,8 +527,8 @@ class TestIntegratedFormatting(unittest.TestCase):
         """Test using format_content with JSON formatter."""
         formatter = FormatterFactory.get_formatter("json")
         outputs = formatter.format_content(
-            self.stats, media_type="show",
-            show_recent=True, recently_watched=self.recently_watched)
+            self.stats, media_type="show", show_recent=True, recently_watched=self.recently_watched
+        )
 
         self.assertEqual(len(outputs), 2)
 
@@ -537,8 +545,11 @@ class TestIntegratedFormatting(unittest.TestCase):
         """Test using format_content with YAML formatter."""
         formatter = FormatterFactory.get_formatter("yaml")
         outputs = formatter.format_content(
-            self.versatile_stats, media_type="movie",
-            show_recent=True, recently_watched=self.recently_watched)
+            self.versatile_stats,
+            media_type="movie",
+            show_recent=True,
+            recently_watched=self.recently_watched,
+        )
 
         self.assertEqual(len(outputs), 2)
 
@@ -555,8 +566,8 @@ class TestIntegratedFormatting(unittest.TestCase):
         """Test using format_content with Compact formatter."""
         formatter = FormatterFactory.get_formatter("compact")
         outputs = formatter.format_content(
-            self.stats, media_type="show",
-            show_recent=True, recently_watched=self.recently_watched)
+            self.stats, media_type="show", show_recent=True, recently_watched=self.recently_watched
+        )
 
         self.assertEqual(len(outputs), 2)
         # Compact formatter should have a minimal representation with pipes
@@ -577,8 +588,8 @@ class TestIntegratedFormatting(unittest.TestCase):
 
         # Call format_content
         outputs = formatter.format_content(
-            self.stats, media_type="show",
-            show_recent=True, recently_watched=self.recently_watched)
+            self.stats, media_type="show", show_recent=True, recently_watched=self.recently_watched
+        )
 
         # Verify the underlying methods were called
         mock_format_show.assert_called_once_with(self.stats)
@@ -590,5 +601,5 @@ class TestIntegratedFormatting(unittest.TestCase):
         self.assertEqual(outputs[1], "Mock recently watched")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

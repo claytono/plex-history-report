@@ -65,10 +65,15 @@ fi
 
 # Process command-line arguments
 if [ $# -eq 0 ]; then
-    echo "Running EditorConfig check on all files (respecting .gitignore)..."
-    # Default patterns to exclude (added LICENSE file to exclusions)
-    EXCLUDE_PATTERN="\\.(git|venv|env|pytest_cache|ruff_cache|mypy_cache|coverage|bin)/.*$|\\.__pycache__/|/dist/|/build/|/LICENSE$"
-    ARGS=("-exclude" "$EXCLUDE_PATTERN")
+    echo "Running EditorConfig check on tracked files (respecting .gitignore)"
+    # Get all tracked files from git
+    ARGS=()
+    while IFS= read -r file; do
+        # Skip Markdown files (handled by Prettier/markdown-lint)
+        if [[ "$file" != *.md ]]; then
+            ARGS+=("$file")
+        fi
+    done < <(git --no-pager ls-files)
 else
     # Use provided arguments
     ARGS=("$@")

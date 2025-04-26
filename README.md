@@ -1,15 +1,15 @@
 # Plex History Reports
 
-A Python tool to track, analyze, and report on your Plex media watching statistics. Get insights into
-TV show and movie watching habits, track completion percentages, view watch history, and export
+A Python tool to track, analyze, and report on your Plex media watching statistics. Get insights
+into TV show and movie watching habits, track completion percentages, view watch history, and export
 reports in multiple formats.
 
 ## Background
 
-Originally this started as an effort to collect data from Plex so that I could use that to have ChatGPT
-help me determine if I would like watching a TV show. I used GitHub Copilot for most of this and the
-project kind of went overboard. Overall it works well for my needs and I'm happy with it. I hope you
-find it useful too.
+Originally this started as an effort to collect data from Plex so that I could use that to have
+ChatGPT help me determine if I would like watching a TV show. I used GitHub Copilot for most of this
+and the project kind of went overboard. Overall it works well for my needs and I'm happy with it. I
+hope you find it useful too.
 
 ## Features
 
@@ -32,17 +32,17 @@ find it useful too.
 
 1. Clone this repository:
 
-    ```bash
-    git clone https://github.com/claytono/plex-history-report.git
-    cd plex-history-report
-    ```
+   ```bash
+   git clone https://github.com/claytono/plex-history-report.git
+   cd plex-history-report
+   ```
 
 2. Install the package with UV:
 
-    ```bash
-    # Install in development mode
-    uv pip install -e .
-    ```
+   ```bash
+   # Install in development mode
+   uv pip install -e .
+   ```
 
 ## Configuration
 
@@ -50,9 +50,9 @@ Create a `config.yaml` file in the project directory with the following structur
 
 ```yaml
 plex:
-    base_url: "http://your-plex-server:32400"
-    token: "your-plex-token"
-    default_user: "optional-default-username"  # Optional: Set a default user
+  base_url: "http://your-plex-server:32400"
+  token: "your-plex-token"
+  default_user: "optional-default-username" # Optional: Set a default user
 ```
 
 You can obtain your Plex token by following the instructions in the
@@ -173,5 +173,5 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 for details.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU
-General Public License as published by the Free Software Foundation, either version 3 of the License,
-or (at your option) any later version.
+General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
