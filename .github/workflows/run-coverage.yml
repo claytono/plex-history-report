@@ -1,0 +1,39 @@
+name: Test Coverage
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install uv
+        shell: bash
+        run: |
+          pip install --upgrade pip
+          pip install uv
+
+      - name: Create venv
+        run: |
+          uv venv
+
+      - name: Run coverage
+        run: |
+          ./scripts/run-coverage --xml --ci
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: error

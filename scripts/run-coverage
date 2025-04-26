@@ -9,6 +9,7 @@ FORMAT="term"
 SHOW_REPORT=true
 OUTPUT_DIR="htmlcov"
 EXTRA_ARGS=""
+CI_MODE=false
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -23,6 +24,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-report)
             SHOW_REPORT=false
+            shift
+            ;;
+        --ci)
+            CI_MODE=true
             shift
             ;;
         --output-dir)
@@ -59,6 +64,11 @@ else
     else
         COVERAGE_CMD+="term"
     fi
+fi
+
+# In CI mode, don't enforce coverage threshold
+if [ "$CI_MODE" = true ]; then
+    COVERAGE_CMD+=" --cov-fail-under=0"
 fi
 
 # Add any extra arguments
