@@ -32,7 +32,7 @@
 
 ### Monitoring CI Status
 
-- After pushing changes to a pull request, always run `./scripts/check-gh-actions --wait` to monitor CI status and wait for the workflows to complete.
+- After pushing changes to a pull request, always run `./scripts/check-gh-actions` to monitor CI status and wait for the workflows to complete.
 - Use the exit code from the script to determine if all checks passed (exit code 0) or some failed (non-zero exit code).
 - If any CI checks fail, examine the logs provided by the script to diagnose and fix the issues before proceeding.
 
