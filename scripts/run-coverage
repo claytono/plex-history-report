@@ -16,8 +16,57 @@ echo "Installing package in development mode..."
 uv pip install -e .[dev]
 
 # Run tests with coverage reporting
-echo "Running coverage: pytest --cov=plex_history_report --cov-report=xml --cov-report=html"
-uv run -m pytest --cov=plex_history_report --cov-report=xml --cov-report=html "$@"
+echo "Running coverage: pytest with comprehensive coverage options"
+# Cover the entire project (not just plex_history_report) and include branch coverage
+uv run -m pytest --cov=. --cov-branch --cov-append --cov-report=xml --cov-report=html --cov-report=term-missing "$@"
+
+# Make sure the coverage files are always using relative paths as required by the coverage comment action
+echo -e "\nEnsuring coverage files use relative paths..."
+if command -v python3 &> /dev/null; then
+    python3 -c "
+import json
+import xml.etree.ElementTree as ET
+import os
+
+# Process coverage.xml
+try:
+    tree = ET.parse('coverage.xml')
+    root = tree.getroot()
+    
+    # Get base directory from coverage.xml
+    base_dir = root.get('base')
+    
+    # Fix sources in coverage.xml
+    for source in root.findall('.//source'):
+        path = source.text
+        if os.path.isabs(path):
+            rel_path = os.path.relpath(path, base_dir) if base_dir else '.'
+            source.text = rel_path
+    
+    # Fix paths in classes
+    for class_elem in root.findall('./packages/package/classes/class'):
+        filename = class_elem.get('filename')
+        if os.path.isabs(filename):
+            rel_path = os.path.relpath(filename, base_dir) if base_dir else filename
+            class_elem.set('filename', rel_path)
+    
+    tree.write('coverage.xml')
+    print('Fixed paths in coverage.xml')
+except Exception as e:
+    print(f'Error processing coverage.xml: {e}')
+
+# Process .coverage (if it exists)
+try:
+    import coverage
+    cov = coverage.Coverage()
+    cov.load()
+    cov.config.relative_files = True
+    cov.save()
+    print('Fixed paths in .coverage')
+except Exception as e:
+    print(f'Error processing .coverage: {e}')
+    "
+fi
 
 echo -e "\nCoverage reports generated: coverage.xml and htmlcov/"
 echo "To view HTML report, open: htmlcov/index.html"
