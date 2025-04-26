@@ -34,10 +34,10 @@
 
 ### Monitoring CI Status
 
-- After pushing changes to a pull request, always run
-  `./scripts/check-gh-actions` to monitor CI status and wait for workflows to complete.
-- If any CI checks fail, examine the logs provided by the script to diagnose
-  and fix the issues before proceeding.
+- After pushing changes to a pull request, always run `./scripts/check-gh-actions` to monitor CI
+  status and wait for workflows to complete.
+- If any CI checks fail, examine the logs provided by the script to diagnose and fix the issues
+  before proceeding.
 
 ## Git Workflow
 
