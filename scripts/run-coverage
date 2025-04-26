@@ -10,8 +10,6 @@ SHOW_REPORT=true
 OUTPUT_DIR="htmlcov"
 EXTRA_ARGS=""
 CI_MODE=false
-XML_TYPE="coverage"  # Default XML format (coverage.py's native format)
-JUNIT_XML=false      # Generate JUnit XML for test results
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -24,22 +22,12 @@ while [[ $# -gt 0 ]]; do
             FORMAT="xml"
             shift
             ;;
-        --cobertura)
-            FORMAT="xml"
-            XML_TYPE="cobertura"
-            shift
-            ;;
-        --junit-xml)
-            JUNIT_XML=true
-            shift
-            ;;
         --no-report)
             SHOW_REPORT=false
             shift
             ;;
         --ci)
             CI_MODE=true
-            JUNIT_XML=true  # Always generate JUnit XML in CI mode
             shift
             ;;
         --output-dir)
@@ -68,14 +56,8 @@ if [ "$FORMAT" == "html" ]; then
     COVERAGE_CMD+="html:$OUTPUT_DIR"
     echo "Generating HTML coverage report in: $OUTPUT_DIR"
 elif [ "$FORMAT" == "xml" ]; then
-    if [ "$XML_TYPE" == "cobertura" ]; then
-        COVERAGE_CMD+="xml:coverage.xml --cov-report=cobertura:cobertura.xml"
-        echo "Generating Cobertura XML coverage report: cobertura.xml"
-        echo "Generating standard XML coverage report: coverage.xml"
-    else
-        COVERAGE_CMD+="xml:coverage.xml"
-        echo "Generating XML coverage report: coverage.xml"
-    fi
+    COVERAGE_CMD+="xml:coverage.xml"
+    echo "Generating XML coverage report: coverage.xml"
 else
     if [ "$SHOW_REPORT" = true ]; then
         COVERAGE_CMD+="term-missing"
@@ -89,8 +71,8 @@ if [ "$CI_MODE" = true ]; then
     COVERAGE_CMD+=" --cov-fail-under=0"
 fi
 
-# Add JUnit XML output if requested
-if [ "$JUNIT_XML" = true ]; then
+# Add JUnit XML output for CI environments
+if [ "$CI_MODE" = true ]; then
     COVERAGE_CMD+=" --junitxml=pytest.xml"
     echo "Generating JUnit XML test report: pytest.xml"
 fi
@@ -106,13 +88,8 @@ eval "$COVERAGE_CMD"
 if [ "$FORMAT" == "html" ]; then
     echo "Coverage report generated in: $OUTPUT_DIR/index.html"
 elif [ "$FORMAT" == "xml" ]; then
-    if [ "$XML_TYPE" == "cobertura" ]; then
-        echo "Coverage reports generated: coverage.xml and cobertura.xml"
-    else
-        echo "Coverage XML report generated: coverage.xml"
-    fi
-
-    if [ "$JUNIT_XML" = true ]; then
+    echo "Coverage XML report generated: coverage.xml"
+    if [ "$CI_MODE" = true ]; then
         echo "JUnit XML report generated: pytest.xml"
     fi
 fi
