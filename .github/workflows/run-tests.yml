@@ -34,3 +34,12 @@ jobs:
       - name: Run tests
         run: |
           ./scripts/run-tests
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-${{ matrix.python-version }}
