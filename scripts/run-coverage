@@ -1,0 +1,23 @@
+#!/bin/bash
+# Script to run tests with coverage and generate XML + HTML reports
+
+# Exit on any error
+set -e
+
+# Ensure uv is available
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv is not installed or not in PATH"
+    echo "Visit https://github.com/astral-sh/uv for installation instructions"
+    exit 1
+fi
+
+# Install package in development mode
+echo "Installing package in development mode..."
+uv pip install -e .[dev]
+
+# Run tests with coverage reporting
+echo "Running coverage: pytest --cov=plex_history_report --cov-report=xml --cov-report=html"
+uv run -m pytest --cov=plex_history_report --cov-report=xml --cov-report=html "$@"
+
+echo -e "\nCoverage reports generated: coverage.xml and htmlcov/"
+echo "To view HTML report, open: htmlcov/index.html"

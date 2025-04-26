@@ -9,6 +9,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Add permissions required by the coverage comment action
+    permissions:
+      # Required for PR comments
+      pull-requests: write
+      # Required for coverage badge storage
+      contents: write
     strategy:
       matrix:
         python-version: ["3.8", "3.x"]
@@ -31,6 +37,14 @@ jobs:
         run: |
           uv venv
 
-      - name: Run tests
+      - name: Run tests with coverage
         run: |
-          ./scripts/run-tests
+          ./scripts/run-coverage
+
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Only show coverage badge and report for the latest Python version
+          SKIP_DEFAULT_BRANCH_COVERAGE: ${{ matrix.python-version != '3.x' }}

@@ -17,6 +17,8 @@ env/
 
 # Development tools
 .coverage
+coverage.xml
+.coverage.*
 htmlcov/
 .pytest_cache/
 .ruff_cache/
