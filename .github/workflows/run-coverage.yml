@@ -32,10 +32,23 @@ jobs:
         run: |
           ./scripts/run-coverage --xml --ci
 
+      - name: Verify coverage files exist
+        run: |
+          if [ ! -f "./coverage.xml" ]; then
+            echo "Error: coverage.xml file not found"
+            exit 1
+          fi
+          if [ ! -f "./pytest.xml" ]; then
+            echo "Error: pytest.xml file not found"
+            exit 1
+          fi
+          echo "Coverage files found at expected locations"
+
       - name: Python Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: ./coverage.xml
+          junitxml-path: ./pytest.xml
           title: Coverage Report
           badge-title: Coverage
           hide-badge: false
@@ -44,6 +57,8 @@ jobs:
           hide-comment: false
           report-only-changed-files: false
           remove-link-from-badge: false
+          fail-on-error: true
+          fail-below-min: false
 
       - name: Upload coverage reports to artifacts
         uses: actions/upload-artifact@v4
@@ -51,4 +66,5 @@ jobs:
           name: coverage-reports
           path: |
             coverage.xml
+            pytest.xml
           if-no-files-found: error
