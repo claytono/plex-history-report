@@ -3,22 +3,6 @@
 
 set -e
 
-# Define colors only when outputting to a terminal
-if [ -t 1 ]; then
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[0;33m'
-    BLUE='\033[0;34m'
-    NC='\033[0m' # No Color
-else
-    # No colors when not outputting to a terminal
-    RED=''
-    GREEN=''
-    YELLOW=''
-    BLUE=''
-    NC=''
-fi
-
 # Repository information
 REPO_URL=$(git --no-pager config --get remote.origin.url)
 REPO_PATH=$(echo "$REPO_URL" | sed -E 's/.*github.com[:/]([^/]+\/[^/]+)(\.git)?$/\1/')
@@ -29,28 +13,42 @@ usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
     echo "  -b, --branch BRANCH    Specify branch name (default: current branch)"
-    echo "  -w, --wait             Wait for in-progress workflows to complete"
+    echo "  -n, --no-wait          Don't wait for in-progress workflows to complete"
     echo "  -t, --timeout SECONDS  Timeout in seconds when waiting (default: 300)"
+    echo "  -i, --interval SECONDS Watch interval in seconds (default: 1)"
+    echo "  -f, --fail-fast        Exit on first check failure"
     echo "  -h, --help             Show this help message"
     exit 1
 }
 
 # Parse command-line arguments
-WAIT_FOR_COMPLETION=false
+WAIT_FOR_COMPLETION=true
 TIMEOUT=300
+WATCH_INTERVAL=1
+FAIL_FAST=""
+PR_ARG=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -b|--branch)
             BRANCH="$2"
+            PR_ARG="$BRANCH"
             shift 2
             ;;
-        -w|--wait)
-            WAIT_FOR_COMPLETION=true
+        -n|--no-wait)
+            WAIT_FOR_COMPLETION=false
+            shift
+            ;;
+        -f|--fail-fast)
+            FAIL_FAST="--fail-fast"
             shift
             ;;
         -t|--timeout)
             TIMEOUT="$2"
+            shift 2
+            ;;
+        -i|--interval)
+            WATCH_INTERVAL="$2"
             shift 2
             ;;
         -h|--help)
@@ -65,216 +63,90 @@ done
 
 # Check if gh CLI is installed
 if ! command -v gh &> /dev/null; then
-    echo -e "${RED}Error:${NC} GitHub CLI (gh) is not installed."
+    echo "Error: GitHub CLI (gh) is not installed."
     echo "Please install it from https://cli.github.com/"
     exit 1
 fi
 
 # Check if authenticated with GitHub
 if ! gh auth status &> /dev/null; then
-    echo -e "${RED}Error:${NC} Not authenticated with GitHub."
+    echo "Error: Not authenticated with GitHub."
     echo "Please run 'gh auth login' to authenticate."
     exit 1
 fi
 
-echo -e "${BLUE}Checking workflow runs for branch: ${BRANCH}${NC}"
-echo -e "${BLUE}Repository: ${REPO_PATH}${NC}"
+echo "Checking workflow runs for branch: ${BRANCH}"
+echo "Repository: ${REPO_PATH}"
 
-# Function to display workflow run status
-display_workflow_status() {
-    local run="$1"
-    local status
-    local conclusion
-    local name
-    local id
+# Function to get detailed logs for failed runs
+get_failed_run_logs() {
+    # Get recent workflow runs that failed
+    echo "Checking for failed workflow runs..."
 
-    status=$(echo "$run" | jq -r '.status')
-    conclusion=$(echo "$run" | jq -r '.conclusion')
-    name=$(echo "$run" | jq -r '.name')
-    id=$(echo "$run" | jq -r '.databaseId')
-
-    echo -n "Workflow: $name - Status: $status"
-
-    if [[ "$status" == "completed" ]]; then
-        if [[ "$conclusion" == "success" ]]; then
-            echo -e " - ${GREEN}✓ Success${NC}"
-        else
-            echo -e " - ${RED}✗ Failed ($conclusion)${NC}"
-            # Store failed workflow IDs to retrieve logs later
-            FAILED_WORKFLOW_IDS+=("$id")
-            FAILED_WORKFLOW_NAMES+=("$name")
-        fi
+    # Try to get a PR number if we don't already have it
+    PR_NUMBER=""
+    if [[ -z "$PR_ARG" ]]; then
+        PR_NUMBER=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
     else
-        echo -e " - ${YELLOW}Running${NC}"
+        PR_NUMBER="$PR_ARG"
+    fi
+
+    if [[ -n "$PR_NUMBER" ]]; then
+        # Get information about the failed checks
+        FAILED_CHECKS=$(gh pr checks "$PR_NUMBER" --json name,conclusion,url --jq '.[] | select(.conclusion != "success" and .conclusion != null)')
+
+        if [[ -n "$FAILED_CHECKS" ]]; then
+            echo "Found failed checks. Retrieving detailed logs..."
+
+            # List recent failed workflow runs
+            FAILED_RUNS=$(gh run list --branch "$BRANCH" --json databaseId,name,conclusion,url --jq '.[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != null)')
+
+            if [[ -n "$FAILED_RUNS" ]]; then
+                echo "$FAILED_RUNS" | jq -c '.' | while read -r run; do
+                    run_id=$(echo "$run" | jq -r '.databaseId')
+                    run_name=$(echo "$run" | jq -r '.name')
+                    echo "===== Failed workflow: $run_name (ID: $run_id) ====="
+                    echo "Retrieving logs..."
+                    gh run view "$run_id" --log
+                    echo "============================================================"
+                done
+            else
+                echo "No detailed logs available for the failed checks."
+            fi
+        fi
     fi
 }
 
-# Function to wait for workflow completion
-wait_for_completion() {
-    local start_time
-    local end_time
-    local in_progress
-    local remaining
-
-    start_time=$(date +%s)
-    end_time=$((start_time + TIMEOUT))
-    in_progress=true
-
-    echo -e "${YELLOW}Waiting for workflows to complete (timeout: ${TIMEOUT}s)...${NC}"
-
-    while [[ "$in_progress" == "true" && $(date +%s) -lt $end_time ]]; do
-        sleep 5
-
-        # Using a temporary file to avoid subshell issues with in_progress variable
-        runs_file=$(mktemp)
-
-        # Use double quotes for GraphQL query to allow variable expansion
-        gh api graphql -f query="
-        query(\$owner: String!, \$repo: String!, \$branch: String!) {
-            repository(owner: \$owner, name: \$repo) {
-                ref(qualifiedName: \$branch) {
-                    target {
-                        ... on Commit {
-                            checkSuites(first: 10) {
-                                nodes {
-                                    workflowRun {
-                                        databaseId
-                                        status
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }" -F owner="$(echo "$REPO_PATH" | cut -d '/' -f1)" -F repo="$(echo "$REPO_PATH" | cut -d '/' -f2)" -F branch="$BRANCH" --jq '.data.repository.ref.target.checkSuites.nodes[].workflowRun' > "$runs_file" 2>/dev/null
-
-        in_progress=false
-        if grep -q '"status":"queued\\|in_progress"' "$runs_file"; then
-            in_progress=true
-        fi
-
-        rm -f "$runs_file"
-
-        if [[ "$in_progress" == "true" ]]; then
-            remaining=$((end_time - $(date +%s)))
-            echo -e "\r${YELLOW}Waiting for workflows to complete (${remaining}s remaining)...${NC}   \c"
-        fi
-    done
-    echo
-
-    if [[ "$in_progress" == "true" ]]; then
-        echo -e "${YELLOW}Warning: Timeout reached while waiting for workflows to complete${NC}"
-    else
-        echo -e "${GREEN}All workflows completed${NC}"
-    fi
-}
-
-# Get workflow runs for the branch
-get_workflow_status() {
-    # Use double quotes for GraphQL query to allow variable expansion
-    gh api graphql -f query="
-    query(\$owner: String!, \$repo: String!, \$branch: String!) {
-        repository(owner: \$owner, name: \$repo) {
-            ref(qualifiedName: \$branch) {
-                target {
-                    ... on Commit {
-                        checkSuites(first: 20) {
-                            nodes {
-                                workflowRun {
-                                    databaseId
-                                    name
-                                    status
-                                    conclusion
-                                    url
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }" -F owner="$(echo "$REPO_PATH" | cut -d '/' -f1)" -F repo="$(echo "$REPO_PATH" | cut -d '/' -f2)" -F branch="$BRANCH" --jq '.data.repository.ref.target.checkSuites.nodes[].workflowRun' 2>/dev/null
-}
-
-# If wait option is set, wait for all workflows to complete
 if [[ "$WAIT_FOR_COMPLETION" == "true" ]]; then
-    wait_for_completion
-fi
+    echo "Waiting for workflows to complete (timeout: ${TIMEOUT}s)..."
 
-# Get and display all workflow runs
-echo -e "${BLUE}Workflow Runs for branch ${BRANCH}:${NC}"
-FAILED_WORKFLOW_IDS=()
-FAILED_WORKFLOW_NAMES=()
+    # Use gh pr checks with --watch and optional --fail-fast
+    echo "Checking PR status every ${WATCH_INTERVAL} seconds..."
+    gh pr checks "$PR_ARG" --watch --interval "$WATCH_INTERVAL" $FAIL_FAST
+    EXIT_CODE=$?
 
-# Use a temporary file to store the output to avoid losing it in the loop
-TMP_RUNS_FILE=$(mktemp)
-get_workflow_status > "$TMP_RUNS_FILE"
-
-# Check if we received any workflow data
-if [[ ! -s "$TMP_RUNS_FILE" || $(cat "$TMP_RUNS_FILE") == "" ]]; then
-    echo -e "${YELLOW}No workflow runs found for branch: ${BRANCH}${NC}"
-    echo "This could be because:"
-    echo " - The branch is new and hasn't triggered any workflows yet"
-    echo " - The branch doesn't exist on GitHub"
-    echo " - There are no workflows configured for this repository"
-    rm -f "$TMP_RUNS_FILE"
-    exit 0
-fi
-
-# Display status of each workflow run
-while read -r run; do
-    display_workflow_status "$run"
-done < <(jq -c '.' "$TMP_RUNS_FILE")
-
-# Retrieve logs for failed workflows
-if [[ ${#FAILED_WORKFLOW_IDS[@]} -gt 0 ]]; then
-    echo -e "\n${RED}Failed Workflows:${NC}"
-
-    for i in "${!FAILED_WORKFLOW_IDS[@]}"; do
-        id=${FAILED_WORKFLOW_IDS[$i]}
-        name=${FAILED_WORKFLOW_NAMES[$i]}
-
-        echo -e "\n${RED}=== Logs for failed workflow: $name (ID: $id) ===${NC}"
-        echo -e "${YELLOW}Retrieving logs...${NC}"
-
-        # Get the workflow jobs
-        jobs=$(gh api "/repos/${REPO_PATH}/actions/runs/${id}/jobs")
-
-        # For each job in the workflow
-        echo "$jobs" | jq -r '.jobs[] | "\(.name) (\(.status)): \(.conclusion)"' | while read -r job_info; do
-            echo -e "${YELLOW}$job_info${NC}"
-        done
-
-        # Get the job logs for failed jobs
-        echo "$jobs" | jq -r '.jobs[] | select(.conclusion != "success") | "\(.id) \(.name)"' | while read -r job_id job_name; do
-            echo -e "\n${RED}Job: $job_name (ID: $job_id) Failed${NC}"
-            echo -e "${YELLOW}Log:${NC}"
-
-            gh run view --job "$job_id" --log
-        done
-    done
-fi
-
-# Final summary
-echo -e "\n${BLUE}Summary:${NC}"
-total_runs=$(jq -c '.' "$TMP_RUNS_FILE" | wc -l | tr -d ' ')
-failed_runs=${#FAILED_WORKFLOW_IDS[@]}
-successful_runs=$((total_runs - failed_runs))
-
-echo -e "Total workflow runs: $total_runs"
-echo -e "Successful runs: ${GREEN}$successful_runs${NC}"
-if [[ $failed_runs -gt 0 ]]; then
-    echo -e "Failed runs: ${RED}$failed_runs${NC}"
+    if [[ $EXIT_CODE -eq 0 ]]; then
+        echo "All checks passed successfully!"
+    elif [[ $EXIT_CODE -eq 8 ]]; then
+        echo "Checks are still pending after timeout."
+        exit 1
+    else
+        echo "Some checks failed. See details below:"
+        gh pr checks "$PR_ARG" --required
+        get_failed_run_logs
+        exit $EXIT_CODE
+    fi
 else
-    echo -e "Failed runs: $failed_runs"
-fi
+    # Just show the current status without waiting
+    echo "Current CI status:"
+    gh pr checks "$PR_ARG"
+    EXIT_CODE=$?
 
-# Clean up
-rm -f "$TMP_RUNS_FILE"
-
-if [[ $failed_runs -gt 0 ]]; then
-    exit 1
+    if [[ $EXIT_CODE -ne 0 ]]; then
+        echo "Use the default wait mode to monitor checks until completion."
+        get_failed_run_logs
+        exit $EXIT_CODE
+    fi
 fi
 
 exit 0
