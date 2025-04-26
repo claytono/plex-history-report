@@ -16,11 +16,10 @@ env/
 .venv/
 
 # Development tools
-.coverage
+# Coverage files
+coverage.xml
 htmlcov/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
+.coverage
 
 # IDE-specific files
 .idea/
