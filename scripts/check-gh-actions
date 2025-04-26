@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+# Script to check GitHub Actions workflow runs and retrieve logs for failed runs
+
+set -e
+
+# Repository information
+REPO_URL=$(git --no-pager config --get remote.origin.url)
+REPO_PATH=$(echo "$REPO_URL" | sed -E 's/.*github.com[:/]([^/]+\/[^/]+)(\.git)?$/\1/')
+BRANCH=$(git --no-pager branch --show-current)
+
+# Function to print usage information
+usage() {
+    echo "Usage: $0 [options]"
+    echo "Options:"
+    echo "  -b, --branch BRANCH    Specify branch name (default: current branch)"
+    echo "  -n, --no-wait          Don't wait for in-progress workflows to complete"
+    echo "  -t, --timeout SECONDS  Timeout in seconds when waiting (default: 300)"
+    echo "  -i, --interval SECONDS Watch interval in seconds (default: 1)"
+    echo "  -f, --fail-fast        Exit on first check failure"
+    echo "  -h, --help             Show this help message"
+    exit 1
+}
+
+# Parse command-line arguments
+WAIT_FOR_COMPLETION=true
+TIMEOUT=300
+WATCH_INTERVAL=1
+FAIL_FAST=""
+PR_ARG=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -b|--branch)
+            BRANCH="$2"
+            PR_ARG="$BRANCH"
+            shift 2
+            ;;
+        -n|--no-wait)
+            WAIT_FOR_COMPLETION=false
+            shift
+            ;;
+        -f|--fail-fast)
+            FAIL_FAST="--fail-fast"
+            shift
+            ;;
+        -t|--timeout)
+            TIMEOUT="$2"
+            shift 2
+            ;;
+        -i|--interval)
+            WATCH_INTERVAL="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
+    esac
+done
+
+# Check if gh CLI is installed
+if ! command -v gh &> /dev/null; then
+    echo "Error: GitHub CLI (gh) is not installed."
+    echo "Please install it from https://cli.github.com/"
+    exit 1
+fi
+
+# Check if authenticated with GitHub
+if ! gh auth status &> /dev/null; then
+    echo "Error: Not authenticated with GitHub."
+    echo "Please run 'gh auth login' to authenticate."
+    exit 1
+fi
+
+echo "Checking workflow runs for branch: ${BRANCH}"
+echo "Repository: ${REPO_PATH}"
+
+# Function to get PR number for current branch
+get_pr_number() {
+    local branch="$1"
+    gh pr list --head "$branch" --json number --jq '.[0].number'
+}
+
+# Function to check for failed runs and get their logs
+get_failed_checks_logs() {
+    local pr_number="$1"
+
+    if [[ -z "$pr_number" ]]; then
+        echo "No PR number provided, unable to get failed checks."
+        return 1
+    fi
+
+    echo "Checking for failed checks in PR #$pr_number..."
+
+    # Get all checks with their state in JSON format
+    local checks_json
+    checks_json=$(gh pr checks "$pr_number" --json name,state,link)
+
+    # Extract failed checks
+    local failed_checks
+    failed_checks=$(echo "$checks_json" | jq -c '.[] | select(.state != "SUCCESS")')
+
+    if [[ -z "$failed_checks" ]]; then
+        echo "No failed checks found."
+        return 0
+    fi
+
+    echo "Found failed checks:"
+
+    # Process each failed check
+    echo "$failed_checks" | jq -c '.' | while read -r check; do
+        local name
+        local state
+        local link
+        name=$(echo "$check" | jq -r '.name')
+        state=$(echo "$check" | jq -r '.state')
+        link=$(echo "$check" | jq -r '.link')
+
+        echo "- $name: $state"
+
+        # Extract run ID from the link if it's a GitHub Actions workflow run
+        local run_id
+        run_id=$(echo "$link" | sed -n 's#.*/runs/\([0-9]*\).*#\1#p')
+
+        if [[ -n "$run_id" ]]; then
+            echo "Retrieving logs for run ID: $run_id"
+            echo "========== Logs for $name (Run ID: $run_id) =========="
+            gh run view "$run_id" --log || {
+                echo "Could not retrieve logs directly."
+            }
+            echo "======================================================="
+        else
+            echo "Could not extract run ID from link: $link"
+            echo "Please check the details manually at: $link"
+        fi
+    done
+
+    return 1  # Return non-zero to indicate failed checks
+}
+
+# After parsing command-line arguments, determine PR_NUMBER
+# Determine PR number for this branch or explicit arg
+if [[ -z "$PR_ARG" ]]; then
+    PR_NUMBER=$(get_pr_number "$BRANCH")
+else
+    PR_NUMBER="$PR_ARG"
+fi
+if [[ -z "$PR_NUMBER" ]]; then
+    echo "No PR found for branch: $BRANCH"
+    exit 1
+fi
+
+if [[ "$WAIT_FOR_COMPLETION" == "true" ]]; then
+    echo "Waiting for workflows to complete (timeout: ${TIMEOUT}s)..."
+
+    echo "Checking PR status every ${WATCH_INTERVAL} seconds..."
+    gh pr checks "$PR_NUMBER" --watch --interval "$WATCH_INTERVAL" $FAIL_FAST || true
+
+    # After waiting, fetch all check states and inspect
+    echo "Evaluating check results..."
+    CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,state,link)
+    FAILED_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state != "SUCCESS")] | length')
+    if [[ $FAILED_COUNT -eq 0 ]]; then
+        echo "All checks passed successfully!"
+        exit 0
+    fi
+
+    echo "Found $FAILED_COUNT failed checks. Retrieving logs..."
+    get_failed_checks_logs "$PR_NUMBER"
+    exit 1
+
+else
+    # Just show the current status without waiting
+    echo "Current CI status:"
+
+    # Use determined PR_NUMBER
+
+    # Display checks status without waiting
+    gh pr checks "$PR_NUMBER"
+    EXIT_CODE=$?
+
+    if [[ $EXIT_CODE -ne 0 ]]; then
+        echo "Failed checks detected:"
+        get_failed_checks_logs "$PR_NUMBER"
+        exit $?
+    fi
+fi
+
+exit 0
