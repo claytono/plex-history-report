@@ -1,37 +1,23 @@
-# Dependabot configuration for plex-history-report
 version: 2
 updates:
-  # Keep Python dependencies up to date
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "direct"
+    # Updates for devDependencies including prettier
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
-    # Allow execution of external code required by some Python packages
-    insecure-external-code-execution: allow
-    # Use uv as package manager
-    registries:
-      - uv-python
-    # Group dependencies together in a single PR
-    groups:
-      dependencies:
-        patterns:
-          - "*"
-
-  # Keep GitHub Actions up to date
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "all"
+  # Keep GitHub Actions workflows up-to-date
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    # Group actions updates in a single PR
-    groups:
-      github-actions:
-        patterns:
-          - "*"
-
-registries:
-  # Define the uv Python registry
-  uv-python:
-    type: python-index
-    url: https://pypi.org/simple

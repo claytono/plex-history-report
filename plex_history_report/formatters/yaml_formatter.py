@@ -21,7 +21,7 @@ class YamlFormatter(BaseFormatter):
         if isinstance(obj, dict):
             for key, value in obj.items():
                 # Round completion percentage to one decimal place
-                if key == 'completion_percentage':
+                if key == "completion_percentage":
                     obj[key] = round(value, 1)
                 else:
                     obj[key] = self._convert_datetime(value)
@@ -49,14 +49,14 @@ class YamlFormatter(BaseFormatter):
         stats_copy = self._convert_datetime(stats_copy)
 
         data = {
-            'shows': stats_copy,
-            'summary': {
-                'total_shows': len(stats),
-                'watched_shows': sum(1 for show in stats if show['watched_episodes'] > 0),
-                'total_episodes': sum(show['total_episodes'] for show in stats),
-                'watched_episodes': sum(show['watched_episodes'] for show in stats),
-                'total_watch_time_minutes': sum(show['total_watch_time_minutes'] for show in stats),
-            }
+            "shows": stats_copy,
+            "summary": {
+                "total_shows": len(stats),
+                "watched_shows": sum(1 for show in stats if show["watched_episodes"] > 0),
+                "total_episodes": sum(show["total_episodes"] for show in stats),
+                "watched_episodes": sum(show["watched_episodes"] for show in stats),
+                "total_watch_time_minutes": sum(show["total_watch_time_minutes"] for show in stats),
+            },
         }
 
         return yaml.dump(data, sort_keys=False, default_flow_style=False)
@@ -78,20 +78,22 @@ class YamlFormatter(BaseFormatter):
 
         # Convert genre objects to strings if needed
         for movie in stats_copy:
-            if movie.get('genres'):
-                movie['genres'] = [str(g) for g in movie['genres']]
+            if movie.get("genres"):
+                movie["genres"] = [str(g) for g in movie["genres"]]
 
         data = {
-            'movies': stats_copy,
-            'summary': {
-                'total_movies': len(stats),
-                'watched_movies': sum(1 for movie in stats if movie['watched']),
-                'total_watch_count': sum(movie['watch_count'] for movie in stats),
-                'total_duration_minutes': sum(movie['duration_minutes'] for movie in stats),
-                'total_watched_duration_minutes': sum(
-                    movie['duration_minutes'] * movie['watch_count'] for movie in stats if movie['watched']
+            "movies": stats_copy,
+            "summary": {
+                "total_movies": len(stats),
+                "watched_movies": sum(1 for movie in stats if movie["watched"]),
+                "total_watch_count": sum(movie["watch_count"] for movie in stats),
+                "total_duration_minutes": sum(movie["duration_minutes"] for movie in stats),
+                "total_watched_duration_minutes": sum(
+                    movie["duration_minutes"] * movie["watch_count"]
+                    for movie in stats
+                    if movie["watched"]
                 ),
-            }
+            },
         }
 
         return yaml.dump(data, sort_keys=False, default_flow_style=False)
@@ -115,11 +117,9 @@ class YamlFormatter(BaseFormatter):
         # Convert genre objects to strings if needed for movies
         if media_type == "movie":
             for movie in stats_copy:
-                if movie.get('genres'):
-                    movie['genres'] = [str(g) for g in movie['genres']]
+                if movie.get("genres"):
+                    movie["genres"] = [str(g) for g in movie["genres"]]
 
-        data = {
-            f'recently_watched_{media_type}s': stats_copy
-        }
+        data = {f"recently_watched_{media_type}s": stats_copy}
 
         return yaml.dump(data, sort_keys=False, default_flow_style=False)

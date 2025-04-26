@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class PlexClientError(Exception):
     """Exception raised for Plex client errors."""
+
     pass
 
 
@@ -57,8 +58,10 @@ class PlexClient:
                 for user in self.server.myPlexAccount().users():
                     users.append(user.username)
             except Unauthorized:
-                logger.warning("Unauthorized to access myPlex account users. "
-                              "This may be expected if using a managed user token.")
+                logger.warning(
+                    "Unauthorized to access myPlex account users. "
+                    "This may be expected if using a managed user token."
+                )
                 pass
 
             return users
@@ -79,7 +82,7 @@ class PlexClient:
         username: Optional[str] = None,
         include_unwatched: bool = False,
         partially_watched_only: bool = False,
-        sort_by: str = 'title'
+        sort_by: str = "title",
     ) -> List[Dict]:
         """Get statistics for all TV shows.
 
@@ -92,11 +95,15 @@ class PlexClient:
         Returns:
             List of show statistics.
         """
-        logger.debug(f"Getting show statistics (user={username}, include_unwatched={include_unwatched}, "
-                    f"partially_watched_only={partially_watched_only})")
+        logger.debug(
+            f"Getting show statistics (user={username}, include_unwatched={include_unwatched}, "
+            f"partially_watched_only={partially_watched_only})"
+        )
 
         # Get all TV library sections
-        tv_sections = [section for section in self.server.library.sections() if section.type == 'show']
+        tv_sections = [
+            section for section in self.server.library.sections() if section.type == "show"
+        ]
 
         if not tv_sections:
             logger.warning("No TV library sections found")
@@ -113,42 +120,36 @@ class PlexClient:
             stat = self._get_show_statistics(show, username)
 
             # Handle filtering conditions
-            if not include_unwatched and stat['watched_episodes'] == 0:
+            if not include_unwatched and stat["watched_episodes"] == 0:
                 # Skip unwatched shows
                 continue
 
             # Only keep partially watched shows if requested
-            if partially_watched_only and not (0 < stat['completion_percentage'] < 100):
+            if partially_watched_only and not (0 < stat["completion_percentage"] < 100):
                 # Skip fully watched or completely unwatched shows
                 continue
 
             show_stats.append(stat)
 
         # Sort results
-        if sort_by == 'title':
-            show_stats.sort(key=lambda x: x['title'].lower())
-        elif sort_by == 'watched_episodes':
-            show_stats.sort(key=lambda x: x['watched_episodes'], reverse=True)
-        elif sort_by == 'completion_percentage':
-            show_stats.sort(key=lambda x: x['completion_percentage'], reverse=True)
-        elif sort_by == 'last_watched':
+        if sort_by == "title":
+            show_stats.sort(key=lambda x: x["title"].lower())
+        elif sort_by == "watched_episodes":
+            show_stats.sort(key=lambda x: x["watched_episodes"], reverse=True)
+        elif sort_by == "completion_percentage":
+            show_stats.sort(key=lambda x: x["completion_percentage"], reverse=True)
+        elif sort_by == "last_watched":
             # Sort by last_watched, placing None values at the end
             show_stats.sort(
-                key=lambda x: datetime.min if x['last_watched'] is None else x['last_watched'],
-                reverse=True
+                key=lambda x: datetime.min if x["last_watched"] is None else x["last_watched"],
+                reverse=True,
             )
-        elif sort_by == 'year':
+        elif sort_by == "year":
             # Sort by year, placing None values at the end
-            show_stats.sort(
-                key=lambda x: 0 if x['year'] is None else x['year'],
-                reverse=True
-            )
-        elif sort_by == 'rating':
+            show_stats.sort(key=lambda x: 0 if x["year"] is None else x["year"], reverse=True)
+        elif sort_by == "rating":
             # Sort by rating, placing None values at the end
-            show_stats.sort(
-                key=lambda x: 0 if x['rating'] is None else x['rating'],
-                reverse=True
-            )
+            show_stats.sort(key=lambda x: 0 if x["rating"] is None else x["rating"], reverse=True)
 
         return show_stats
 
@@ -189,12 +190,16 @@ class PlexClient:
                         if watched and history:
                             for entry in history:
                                 watch_date = entry.viewedAt
-                                if watch_date and (last_watched_date is None or watch_date > last_watched_date):
+                                if watch_date and (
+                                    last_watched_date is None or watch_date > last_watched_date
+                                ):
                                     last_watched_date = watch_date
 
                                 # Add watch time to total
                                 if episode.duration:
-                                    total_watch_time += episode.duration / 60000  # Convert ms to minutes
+                                    total_watch_time += (
+                                        episode.duration / 60000
+                                    )  # Convert ms to minutes
                     except Exception as e:
                         logger.debug(f"Error getting history for episode: {e}")
                 else:
@@ -207,7 +212,9 @@ class PlexClient:
                         if history:
                             for entry in history:
                                 watch_date = entry.viewedAt
-                                if watch_date and (last_watched_date is None or watch_date > last_watched_date):
+                                if watch_date and (
+                                    last_watched_date is None or watch_date > last_watched_date
+                                ):
                                     last_watched_date = watch_date
 
                                 # Add watch time to total (ms to minutes)
@@ -226,33 +233,33 @@ class PlexClient:
 
             # Build the statistics dictionary
             return {
-                'title': show.title,
-                'total_episodes': total_episodes,
-                'watched_episodes': watched_episodes,
-                'unwatched_episodes': total_episodes - watched_episodes,
-                'completion_percentage': completion_percentage,
-                'total_watch_time_minutes': total_watch_time,
-                'last_watched': last_watched_date,
-                'year': show.year,
-                'rating': show.rating,
-                'key': show.key
+                "title": show.title,
+                "total_episodes": total_episodes,
+                "watched_episodes": watched_episodes,
+                "unwatched_episodes": total_episodes - watched_episodes,
+                "completion_percentage": completion_percentage,
+                "total_watch_time_minutes": total_watch_time,
+                "last_watched": last_watched_date,
+                "year": show.year,
+                "rating": show.rating,
+                "key": show.key,
             }
 
         except Exception as e:
             logger.error(f"Error processing show {show.title}: {e}")
             # Return a minimal statistics dictionary on error
             return {
-                'title': show.title,
-                'total_episodes': 0,
-                'watched_episodes': 0,
-                'unwatched_episodes': 0,
-                'completion_percentage': 0,
-                'total_watch_time_minutes': 0,
-                'last_watched': None,
-                'year': None,
-                'rating': None,
-                'key': show.key,
-                'error': str(e)
+                "title": show.title,
+                "total_episodes": 0,
+                "watched_episodes": 0,
+                "unwatched_episodes": 0,
+                "completion_percentage": 0,
+                "total_watch_time_minutes": 0,
+                "last_watched": None,
+                "year": None,
+                "rating": None,
+                "key": show.key,
+                "error": str(e),
             }
 
     def get_all_movie_statistics(
@@ -260,7 +267,7 @@ class PlexClient:
         username: Optional[str] = None,
         include_unwatched: bool = False,
         partially_watched_only: bool = False,
-        sort_by: str = 'title'
+        sort_by: str = "title",
     ) -> List[Dict]:
         """Get statistics for all movies.
 
@@ -273,11 +280,15 @@ class PlexClient:
         Returns:
             List of movie statistics.
         """
-        logger.debug(f"Getting movie statistics (user={username}, include_unwatched={include_unwatched}, "
-                    f"partially_watched_only={partially_watched_only})")
+        logger.debug(
+            f"Getting movie statistics (user={username}, include_unwatched={include_unwatched}, "
+            f"partially_watched_only={partially_watched_only})"
+        )
 
         # Get all movie library sections
-        movie_sections = [section for section in self.server.library.sections() if section.type == 'movie']
+        movie_sections = [
+            section for section in self.server.library.sections() if section.type == "movie"
+        ]
 
         if not movie_sections:
             logger.warning("No movie library sections found")
@@ -294,36 +305,33 @@ class PlexClient:
             stat = self._get_movie_statistics(movie, username)
 
             # Apply filtering based on watch status
-            if not include_unwatched and not stat['watched']:
+            if not include_unwatched and not stat["watched"]:
                 # Skip unwatched movies
                 continue
 
             # Filter for partially watched movies if requested
-            if partially_watched_only and not (0 < stat['completion_percentage'] < 100):
+            if partially_watched_only and not (0 < stat["completion_percentage"] < 100):
                 # Skip fully watched or completely unwatched movies
                 continue
 
             movie_stats.append(stat)
 
         # Sort results
-        if sort_by == 'title':
-            movie_stats.sort(key=lambda x: x['title'].lower())
-        elif sort_by == 'year':
-            movie_stats.sort(key=lambda x: 0 if x['year'] is None else x['year'], reverse=True)
-        elif sort_by == 'last_watched':
+        if sort_by == "title":
+            movie_stats.sort(key=lambda x: x["title"].lower())
+        elif sort_by == "year":
+            movie_stats.sort(key=lambda x: 0 if x["year"] is None else x["year"], reverse=True)
+        elif sort_by == "last_watched":
             movie_stats.sort(
-                key=lambda x: datetime.min if x['last_watched'] is None else x['last_watched'],
-                reverse=True
+                key=lambda x: datetime.min if x["last_watched"] is None else x["last_watched"],
+                reverse=True,
             )
-        elif sort_by == 'watch_count':
-            movie_stats.sort(key=lambda x: x['watch_count'], reverse=True)
-        elif sort_by == 'rating':
-            movie_stats.sort(
-                key=lambda x: 0 if x['rating'] is None else x['rating'],
-                reverse=True
-            )
-        elif sort_by == 'duration_minutes':
-            movie_stats.sort(key=lambda x: x['duration_minutes'], reverse=True)
+        elif sort_by == "watch_count":
+            movie_stats.sort(key=lambda x: x["watch_count"], reverse=True)
+        elif sort_by == "rating":
+            movie_stats.sort(key=lambda x: 0 if x["rating"] is None else x["rating"], reverse=True)
+        elif sort_by == "duration_minutes":
+            movie_stats.sort(key=lambda x: x["duration_minutes"], reverse=True)
 
         return movie_stats
 
@@ -359,7 +367,9 @@ class PlexClient:
                     # Get last watched date
                     if history:
                         for entry in history:
-                            if entry.viewedAt and (last_watched_date is None or entry.viewedAt > last_watched_date):
+                            if entry.viewedAt and (
+                                last_watched_date is None or entry.viewedAt > last_watched_date
+                            ):
                                 last_watched_date = entry.viewedAt
                 except Exception as e:
                     logger.debug(f"Error getting history for movie '{movie.title}': {e}")
@@ -367,9 +377,11 @@ class PlexClient:
                 # Check if movie is partially watched
                 try:
                     # Try to get view offset for this user
-                    if hasattr(movie, 'viewOffset'):
+                    if hasattr(movie, "viewOffset"):
                         view_offset = movie.viewOffset
-                        logger.debug(f"Movie '{movie.title}' has viewOffset: {view_offset} out of {movie.duration} ({(view_offset / movie.duration * 100):.1f}% watched)")
+                        logger.debug(
+                            f"Movie '{movie.title}' has viewOffset: {view_offset} out of {movie.duration} ({(view_offset / movie.duration * 100):.1f}% watched)"
+                        )
                 except Exception as e:
                     logger.debug(f"Error getting viewOffset for movie '{movie.title}': {e}")
             else:
@@ -384,7 +396,9 @@ class PlexClient:
                     # Get last watched date across all users
                     if history:
                         for entry in history:
-                            if entry.viewedAt and (last_watched_date is None or entry.viewedAt > last_watched_date):
+                            if entry.viewedAt and (
+                                last_watched_date is None or entry.viewedAt > last_watched_date
+                            ):
                                 last_watched_date = entry.viewedAt
                 except Exception as e:
                     logger.debug(f"Error getting history for movie '{movie.title}': {e}")
@@ -392,9 +406,11 @@ class PlexClient:
                 # Check if movie is partially watched
                 try:
                     # Try to get view offset
-                    if hasattr(movie, 'viewOffset'):
+                    if hasattr(movie, "viewOffset"):
                         view_offset = movie.viewOffset
-                        logger.debug(f"Movie '{movie.title}' has viewOffset: {view_offset} out of {movie.duration} ({(view_offset / movie.duration * 100):.1f}% watched)")
+                        logger.debug(
+                            f"Movie '{movie.title}' has viewOffset: {view_offset} out of {movie.duration} ({(view_offset / movie.duration * 100):.1f}% watched)"
+                        )
                 except Exception as e:
                     logger.debug(f"Error getting viewOffset for movie '{movie.title}': {e}")
 
@@ -411,36 +427,38 @@ class PlexClient:
 
             # Build the statistics dictionary
             return {
-                'title': movie.title,
-                'year': movie.year,
-                'duration_minutes': duration_minutes,
-                'watched': watched,
-                'watch_count': watch_count,
-                'last_watched': last_watched_date,
-                'rating': movie.rating,
-                'view_offset': view_offset,
-                'completion_percentage': completion_percentage,
-                'key': movie.key
+                "title": movie.title,
+                "year": movie.year,
+                "duration_minutes": duration_minutes,
+                "watched": watched,
+                "watch_count": watch_count,
+                "last_watched": last_watched_date,
+                "rating": movie.rating,
+                "view_offset": view_offset,
+                "completion_percentage": completion_percentage,
+                "key": movie.key,
             }
 
         except Exception as e:
             logger.error(f"Error processing movie {movie.title}: {e}")
             # Return a minimal statistics dictionary on error
             return {
-                'title': movie.title,
-                'year': None,
-                'duration_minutes': 0,
-                'watched': False,
-                'watch_count': 0,
-                'last_watched': None,
-                'rating': None,
-                'view_offset': 0,
-                'completion_percentage': 0,
-                'key': movie.key,
-                'error': str(e)
+                "title": movie.title,
+                "year": None,
+                "duration_minutes": 0,
+                "watched": False,
+                "watch_count": 0,
+                "last_watched": None,
+                "rating": None,
+                "view_offset": 0,
+                "completion_percentage": 0,
+                "key": movie.key,
+                "error": str(e),
             }
 
-    def get_recently_watched_shows(self, username: Optional[str] = None, limit: int = 10) -> List[Dict]:
+    def get_recently_watched_shows(
+        self, username: Optional[str] = None, limit: int = 10
+    ) -> List[Dict]:
         """Get recently watched TV show episodes.
 
         Args:
@@ -454,10 +472,10 @@ class PlexClient:
 
         try:
             # Get recently watched episodes
-            if (username):
-                history = self.server.history(limit=limit * 3, type='episode', username=username)
+            if username:
+                history = self.server.history(limit=limit * 3, type="episode", username=username)
             else:
-                history = self.server.history(limit=limit * 3, type='episode')
+                history = self.server.history(limit=limit * 3, type="episode")
 
             if not history:
                 return []
@@ -468,7 +486,7 @@ class PlexClient:
 
             for entry in history:
                 # Skip if not an episode
-                if entry.type != 'episode':
+                if entry.type != "episode":
                     continue
 
                 try:
@@ -481,16 +499,18 @@ class PlexClient:
                         continue
 
                     # Add to results and mark as seen
-                    results.append({
-                        'show_title': show.title,
-                        'episode_title': episode.title,
-                        'season': episode.seasonNumber,
-                        'episode': episode.index,
-                        'duration_minutes': episode.duration / 60000 if episode.duration else 0,
-                        'viewed_at': entry.viewedAt,
-                        'user': entry.username,
-                        'year': show.year
-                    })
+                    results.append(
+                        {
+                            "show_title": show.title,
+                            "episode_title": episode.title,
+                            "season": episode.seasonNumber,
+                            "episode": episode.index,
+                            "duration_minutes": episode.duration / 60000 if episode.duration else 0,
+                            "viewed_at": entry.viewedAt,
+                            "user": entry.username,
+                            "year": show.year,
+                        }
+                    )
                     shows_seen.add(show.key)
 
                     # Stop if we've reached the limit
@@ -506,7 +526,9 @@ class PlexClient:
             logger.error(f"Error getting recently watched shows: {e}")
             return []
 
-    def get_recently_watched_movies(self, username: Optional[str] = None, limit: int = 10) -> List[Dict]:
+    def get_recently_watched_movies(
+        self, username: Optional[str] = None, limit: int = 10
+    ) -> List[Dict]:
         """Get recently watched movies.
 
         Args:
@@ -521,9 +543,9 @@ class PlexClient:
         try:
             # Get recently watched movies
             if username:
-                history = self.server.history(limit=limit, type='movie', username=username)
+                history = self.server.history(limit=limit, type="movie", username=username)
             else:
-                history = self.server.history(limit=limit, type='movie')
+                history = self.server.history(limit=limit, type="movie")
 
             if not history:
                 return []
@@ -534,7 +556,7 @@ class PlexClient:
 
             for entry in history:
                 # Skip if not a movie
-                if entry.type != 'movie':
+                if entry.type != "movie":
                     continue
 
                 try:
@@ -543,14 +565,16 @@ class PlexClient:
                         continue
 
                     # Add to results and mark as seen
-                    results.append({
-                        'title': entry.title,
-                        'year': entry.year,
-                        'duration_minutes': entry.duration / 60000 if entry.duration else 0,
-                        'viewed_at': entry.viewedAt,
-                        'user': entry.username,
-                        'rating': entry.rating
-                    })
+                    results.append(
+                        {
+                            "title": entry.title,
+                            "year": entry.year,
+                            "duration_minutes": entry.duration / 60000 if entry.duration else 0,
+                            "viewed_at": entry.viewedAt,
+                            "user": entry.username,
+                            "rating": entry.rating,
+                        }
+                    )
                     movies_seen.add(entry.key)
 
                     # Stop if we've reached the limit

@@ -25,15 +25,22 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True)]
+    handlers=[RichHandler(rich_tracebacks=True)],
 )
 
 logger = logging.getLogger("plex_history_report")
 
 
 # Define available sort options for different media types
-TV_SORT_OPTIONS = ['title', 'watched_episodes', 'completion_percentage', 'last_watched', 'year', 'rating']
-MOVIE_SORT_OPTIONS = ['title', 'year', 'last_watched', 'watch_count', 'rating', 'duration_minutes']
+TV_SORT_OPTIONS = [
+    "title",
+    "watched_episodes",
+    "completion_percentage",
+    "last_watched",
+    "year",
+    "rating",
+]
+MOVIE_SORT_OPTIONS = ["title", "year", "last_watched", "watch_count", "rating", "duration_minutes"]
 
 
 def configure_parser() -> argparse.ArgumentParser:
@@ -48,22 +55,10 @@ def configure_parser() -> argparse.ArgumentParser:
 
     # Create a mutually exclusive group for media type selection
     media_group = parser.add_mutually_exclusive_group(required=True)
-    media_group.add_argument(
-        "--tv",
-        action="store_true",
-        help="Show TV show statistics"
-    )
-    media_group.add_argument(
-        "--movies",
-        action="store_true",
-        help="Show movie statistics"
-    )
+    media_group.add_argument("--tv", action="store_true", help="Show TV show statistics")
+    media_group.add_argument("--movies", action="store_true", help="Show movie statistics")
 
-    parser.add_argument(
-        "--config",
-        type=str,
-        help="Path to configuration file"
-    )
+    parser.add_argument("--config", type=str, help="Path to configuration file")
 
     # Get available formats from FormatterFactory
     available_formats = FormatterFactory.get_available_formats()
@@ -72,31 +67,25 @@ def configure_parser() -> argparse.ArgumentParser:
         type=str,
         choices=available_formats,
         default="table",
-        help="Output format (default: table)"
+        help="Output format (default: table)",
     )
 
     parser.add_argument(
         "--show-recent",
         action="store_true",
-        help="Show recently watched items in addition to overall statistics"
+        help="Show recently watched items in addition to overall statistics",
     )
 
     parser.add_argument(
-        "--create-config",
-        action="store_true",
-        help="Create a default configuration file"
+        "--create-config", action="store_true", help="Create a default configuration file"
     )
 
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug logging"
-    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
 
     parser.add_argument(
         "--user",
         type=str,
-        help="Filter statistics for a specific Plex user (overrides default_user in config)"
+        help="Filter statistics for a specific Plex user (overrides default_user in config)",
     )
 
     # Add mutually exclusive group for watching status filtering
@@ -104,31 +93,29 @@ def configure_parser() -> argparse.ArgumentParser:
     watch_filter_group.add_argument(
         "--include-unwatched",
         action="store_true",
-        help="Include items with no watches (off by default)"
+        help="Include items with no watches (off by default)",
     )
     watch_filter_group.add_argument(
         "--partially-watched-only",
         action="store_true",
-        help="Show only partially watched items (not fully watched or unwatched)"
+        help="Show only partially watched items (not fully watched or unwatched)",
     )
 
     parser.add_argument(
-        "--list-users",
-        action="store_true",
-        help="List available Plex users and exit"
+        "--list-users", action="store_true", help="List available Plex users and exit"
     )
 
     parser.add_argument(
         "--sort-by",
         type=str,
-        help=f"Field to sort results by. For TV: {', '.join(TV_SORT_OPTIONS)}. For movies: {', '.join(MOVIE_SORT_OPTIONS)}."
+        help=f"Field to sort results by. For TV: {', '.join(TV_SORT_OPTIONS)}. For movies: {', '.join(MOVIE_SORT_OPTIONS)}.",
     )
 
     # For backward compatibility - mark as deprecated
     parser.add_argument(
         "--detailed",
         action="store_true",
-        help=argparse.SUPPRESS  # Hide from help but keep for backward compatibility
+        help=argparse.SUPPRESS,  # Hide from help but keep for backward compatibility
     )
 
     return parser
@@ -171,7 +158,9 @@ def run(args: argparse.Namespace) -> int:
             console.print("Creating a default configuration file...")
             create_default_config(config_path)
             console.print(f"Created default configuration file at: {config_path}")
-            console.print("Please edit this file with your Plex server details and run the command again.")
+            console.print(
+                "Please edit this file with your Plex server details and run the command again."
+            )
             return 0
 
         config = load_config(config_path)
@@ -189,8 +178,8 @@ def run(args: argparse.Namespace) -> int:
 
     try:
         # Connect to Plex server
-        plex_config = config['plex']
-        client = PlexClient(plex_config['base_url'], plex_config['token'])
+        plex_config = config["plex"]
+        client = PlexClient(plex_config["base_url"], plex_config["token"])
 
         # List users if requested
         if args.list_users:
@@ -200,7 +189,9 @@ def run(args: argparse.Namespace) -> int:
                 for user in users:
                     console.print(f"- {user}")
             else:
-                console.print("No users found or cannot access user information with current token.")
+                console.print(
+                    "No users found or cannot access user information with current token."
+                )
             return 0
 
         # Determine media type
@@ -212,43 +203,41 @@ def run(args: argparse.Namespace) -> int:
             valid_sort_options = TV_SORT_OPTIONS if args.tv else MOVIE_SORT_OPTIONS
             if args.sort_by not in valid_sort_options:
                 console.print(f"[bold red]Invalid sort option:[/bold red] {args.sort_by}")
-                console.print(f"Valid sort options for {media_type}s are: {', '.join(valid_sort_options)}")
+                console.print(
+                    f"Valid sort options for {media_type}s are: {', '.join(valid_sort_options)}"
+                )
                 return 1
             sort_by = args.sort_by
         else:
             # Use default sort options
-            sort_by = 'completion_percentage' if args.tv else 'last_watched'
+            sort_by = "completion_percentage" if args.tv else "last_watched"
 
         # Determine user to filter by
         username = None
         if args.user:
             # Command-line argument takes precedence
             username = args.user
-        elif plex_config.get('default_user'):
+        elif plex_config.get("default_user"):
             # Use default user from config if available
-            username = plex_config['default_user']
+            username = plex_config["default_user"]
             logger.info(f"Using default user from config: {username}")
 
         # Get appropriate statistics based on media type
         if args.tv:
             logger.debug(f"Fetching TV show statistics for user: {username}")
             stats = client.get_all_show_statistics(
-                username=username,
-                include_unwatched=args.include_unwatched,
-                sort_by=sort_by
+                username=username, include_unwatched=args.include_unwatched, sort_by=sort_by
             )
 
             # Filter for partially watched items if requested
             if args.partially_watched_only:
                 logger.debug("Filtering for partially watched TV shows")
-                stats = [show for show in stats if 0 < show['completion_percentage'] < 100]
+                stats = [show for show in stats if 0 < show["completion_percentage"] < 100]
                 logger.info(f"Filtered to {len(stats)} partially watched TV shows")
         else:  # movies
             logger.debug(f"Fetching movie statistics for user: {username}")
             stats = client.get_all_movie_statistics(
-                username=username,
-                include_unwatched=args.include_unwatched,
-                sort_by=sort_by
+                username=username, include_unwatched=args.include_unwatched, sort_by=sort_by
             )
 
             # Filter for partially watched movies if requested
@@ -256,8 +245,10 @@ def run(args: argparse.Namespace) -> int:
                 logger.debug("Filtering for partially watched movies")
                 # Consider movies "partially watched" if they're between 0% and 100% complete
                 before_count = len(stats)
-                stats = [movie for movie in stats if 0 < movie['completion_percentage'] < 100]
-                logger.info(f"Filtered to {len(stats)} partially watched movies (removed {before_count - len(stats)} fully watched or unwatched movies)")
+                stats = [movie for movie in stats if 0 < movie["completion_percentage"] < 100]
+                logger.info(
+                    f"Filtered to {len(stats)} partially watched movies (removed {before_count - len(stats)} fully watched or unwatched movies)"
+                )
 
         # For backward compatibility, map --detailed to --show-recent
         if args.detailed:
@@ -277,7 +268,7 @@ def run(args: argparse.Namespace) -> int:
             stats,
             media_type=media_type,
             show_recent=args.show_recent,
-            recently_watched=recently_watched
+            recently_watched=recently_watched,
         )
 
         # Use the standardized display_output method to print to console

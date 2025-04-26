@@ -1,0 +1,9 @@
+# Prettier ignore patterns
+node_modules/
+bin/
+plex_history_report/
+*.py
+*.egg-info/
+dist/
+build/
+uv.lock

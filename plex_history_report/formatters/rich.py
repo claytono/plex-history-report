@@ -33,9 +33,13 @@ class RichFormatter(BaseFormatter):
         console = Console(file=string_io, width=120)
 
         if not stats:
-            console.print(Panel("No TV shows found in your Plex library",
-                               title="TV Show Statistics",
-                               border_style="yellow"))
+            console.print(
+                Panel(
+                    "No TV shows found in your Plex library",
+                    title="TV Show Statistics",
+                    border_style="yellow",
+                )
+            )
             return string_io.getvalue()
 
         # Create a table for show statistics
@@ -49,19 +53,19 @@ class RichFormatter(BaseFormatter):
         # Add rows for each show
         for show in stats:
             # Format watch time as hours and minutes
-            hours = int(show['total_watch_time_minutes'] // 60)
-            minutes = int(show['total_watch_time_minutes'] % 60)
+            hours = int(show["total_watch_time_minutes"] // 60)
+            minutes = int(show["total_watch_time_minutes"] % 60)
             watch_time = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
 
             # Format completion percentage, ensuring it's rounded to 1 decimal place
             completion = f"{show['completion_percentage']:.1f}%"
 
             table.add_row(
-                show['title'],
-                str(show['watched_episodes']),
-                str(show['total_episodes']),
+                show["title"],
+                str(show["watched_episodes"]),
+                str(show["total_episodes"]),
                 completion,
-                watch_time
+                watch_time,
             )
 
         console.print(table)
@@ -81,9 +85,13 @@ class RichFormatter(BaseFormatter):
         console = Console(file=string_io, width=120)
 
         if not stats:
-            console.print(Panel("No movies found in your Plex library",
-                               title="Movie Statistics",
-                               border_style="yellow"))
+            console.print(
+                Panel(
+                    "No movies found in your Plex library",
+                    title="Movie Statistics",
+                    border_style="yellow",
+                )
+            )
             return string_io.getvalue()
 
         # Create a table for movie statistics
@@ -97,7 +105,7 @@ class RichFormatter(BaseFormatter):
         # Add rows for each movie
         for movie in stats:
             # Format last watched date
-            last_watched = movie['last_watched']
+            last_watched = movie["last_watched"]
             formatted_date = "Never"
             if last_watched:
                 # Convert to datetime and format
@@ -106,19 +114,15 @@ class RichFormatter(BaseFormatter):
                 formatted_date = last_watched.strftime("%Y-%m-%d")  # Shortened date format
 
             # Format duration as hours and minutes
-            hours = int(movie['duration_minutes'] // 60)
-            minutes = int(movie['duration_minutes'] % 60)
+            hours = int(movie["duration_minutes"] // 60)
+            minutes = int(movie["duration_minutes"] % 60)
             duration = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
 
             # Format rating
-            rating = f"{movie['rating']}" if movie['rating'] else "-"
+            rating = f"{movie['rating']}" if movie["rating"] else "-"
 
             table.add_row(
-                movie['title'],
-                str(movie['watch_count']),
-                formatted_date,
-                duration,
-                rating
+                movie["title"], str(movie["watch_count"]), formatted_date, duration, rating
             )
 
         console.print(table)
@@ -139,9 +143,13 @@ class RichFormatter(BaseFormatter):
         console = Console(file=string_io, width=120)
 
         if not stats:
-            console.print(Panel(f"No recently watched {media_type}s found",
-                               title=f"Recently Watched {media_type.title()}s",
-                               border_style="yellow"))
+            console.print(
+                Panel(
+                    f"No recently watched {media_type}s found",
+                    title=f"Recently Watched {media_type.title()}s",
+                    border_style="yellow",
+                )
+            )
             return string_io.getvalue()
 
         # Create a table for recently watched media
@@ -156,7 +164,7 @@ class RichFormatter(BaseFormatter):
             # Add rows for each show
             for show in stats:
                 # Format last watched date
-                last_watched = show['last_watched']
+                last_watched = show["last_watched"]
                 formatted_date = "Never"
                 if last_watched:
                     # Convert to datetime and format
@@ -165,19 +173,14 @@ class RichFormatter(BaseFormatter):
                     formatted_date = last_watched.strftime("%Y-%m-%d %H:%M")
 
                 # Format watch time as hours and minutes
-                hours = int(show['total_watch_time_minutes'] // 60)
-                minutes = int(show['total_watch_time_minutes'] % 60)
+                hours = int(show["total_watch_time_minutes"] // 60)
+                minutes = int(show["total_watch_time_minutes"] % 60)
                 watch_time = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
 
                 # Format completion percentage
                 completion = f"{show['watched_episodes']}/{show['total_episodes']} ({show['completion_percentage']:.1f}%)"
 
-                table.add_row(
-                    show['title'],
-                    formatted_date,
-                    completion,
-                    watch_time
-                )
+                table.add_row(show["title"], formatted_date, completion, watch_time)
         else:  # movies
             table.add_column("Title", style="cyan", no_wrap=True)
             table.add_column("Last Watched", justify="right", style="green")
@@ -187,7 +190,7 @@ class RichFormatter(BaseFormatter):
             # Add rows for each movie
             for movie in stats:
                 # Format last watched date
-                last_watched = movie['last_watched']
+                last_watched = movie["last_watched"]
                 formatted_date = "Never"
                 if last_watched:
                     # Convert to datetime and format
@@ -196,16 +199,11 @@ class RichFormatter(BaseFormatter):
                     formatted_date = last_watched.strftime("%Y-%m-%d %H:%M")
 
                 # Format duration as hours and minutes
-                hours = int(movie['duration_minutes'] // 60)
-                minutes = int(movie['duration_minutes'] % 60)
+                hours = int(movie["duration_minutes"] // 60)
+                minutes = int(movie["duration_minutes"] % 60)
                 duration = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
 
-                table.add_row(
-                    movie['title'],
-                    formatted_date,
-                    str(movie['watch_count']),
-                    duration
-                )
+                table.add_row(movie["title"], formatted_date, str(movie["watch_count"]), duration)
 
         console.print(table)
         return string_io.getvalue()
@@ -230,17 +228,19 @@ class RichFormatter(BaseFormatter):
         if media_type == "show":
             # Calculate show summary statistics
             total_shows = len(stats)
-            watched_shows = sum(1 for show in stats if show['watched_episodes'] > 0)
-            total_episodes = sum(show['total_episodes'] for show in stats)
-            watched_episodes = sum(show['watched_episodes'] for show in stats)
-            total_watch_time = sum(show['total_watch_time_minutes'] for show in stats)
+            watched_shows = sum(1 for show in stats if show["watched_episodes"] > 0)
+            total_episodes = sum(show["total_episodes"] for show in stats)
+            watched_episodes = sum(show["watched_episodes"] for show in stats)
+            total_watch_time = sum(show["total_watch_time_minutes"] for show in stats)
 
             # Format watch time
             hours = int(total_watch_time // 60)
             minutes = int(total_watch_time % 60)
 
             # Calculate overall completion percentage, rounded to 1 decimal place
-            completion_percentage = (watched_episodes / total_episodes * 100) if total_episodes > 0 else 0
+            completion_percentage = (
+                (watched_episodes / total_episodes * 100) if total_episodes > 0 else 0
+            )
 
             # Create a summary panel
             summary = Panel(
@@ -251,15 +251,19 @@ class RichFormatter(BaseFormatter):
                 f"Overall Completion: {completion_percentage:.1f}%\n"
                 f"Total Watch Time: {hours} hours, {minutes} minutes",
                 title="TV Show Summary",
-                border_style="green"
+                border_style="green",
             )
         else:  # movies
             # Calculate movie summary statistics
             total_movies = len(stats)
-            watched_movies = sum(1 for movie in stats if movie['watched'])
-            watch_count = sum(movie['watch_count'] for movie in stats)
-            total_duration = sum(movie['duration_minutes'] for movie in stats)
-            watched_duration = sum(movie['duration_minutes'] * movie['watch_count'] for movie in stats if movie['watched'])
+            watched_movies = sum(1 for movie in stats if movie["watched"])
+            watch_count = sum(movie["watch_count"] for movie in stats)
+            total_duration = sum(movie["duration_minutes"] for movie in stats)
+            watched_duration = sum(
+                movie["duration_minutes"] * movie["watch_count"]
+                for movie in stats
+                if movie["watched"]
+            )
 
             # Format durations
             total_hours = int(total_duration // 60)
@@ -279,7 +283,7 @@ class RichFormatter(BaseFormatter):
                 f"Total Duration: {total_hours} hours, {total_minutes} minutes\n"
                 f"Total Watch Time: {watched_hours} hours, {watched_minutes} minutes",
                 title="Movie Summary",
-                border_style="green"
+                border_style="green",
             )
 
         console.print(summary)

@@ -45,8 +45,13 @@ class BaseFormatter:
         """
         raise NotImplementedError()
 
-    def format_content(self, stats: List[Dict], media_type: str, show_recent: bool = False,
-                       recently_watched: Optional[List[Dict]] = None) -> List[str]:
+    def format_content(
+        self,
+        stats: List[Dict],
+        media_type: str,
+        show_recent: bool = False,
+        recently_watched: Optional[List[Dict]] = None,
+    ) -> List[str]:
         """Format content based on media type and whether to show recent content.
 
         This is a convenience method to standardize output handling across formatters.

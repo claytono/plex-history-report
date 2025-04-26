@@ -36,8 +36,8 @@ indent_size = 2
 # Markdown files may use trailing whitespace for line breaks
 [*.md]
 trim_trailing_whitespace = false
-indent_size = 2
-
+indent_style = unset
+indent_size = unset
 
 # Shell scripts
 [*.sh]

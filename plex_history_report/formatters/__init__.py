@@ -14,12 +14,12 @@ from plex_history_report.formatters.rich import RichFormatter
 from plex_history_report.formatters.yaml_formatter import YamlFormatter
 
 __all__ = [
-    'BaseFormatter',
-    'CompactFormatter',
-    'CsvFormatter',
-    'FormatterFactory',
-    'JsonFormatter',
-    'MarkdownFormatter',
-    'RichFormatter',
-    'YamlFormatter',
+    "BaseFormatter",
+    "CompactFormatter",
+    "CsvFormatter",
+    "FormatterFactory",
+    "JsonFormatter",
+    "MarkdownFormatter",
+    "RichFormatter",
+    "YamlFormatter",
 ]

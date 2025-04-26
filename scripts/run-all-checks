@@ -9,24 +9,32 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "===== Running all CI checks ====="
 
-# Run editorconfig lint
-echo -e "\n[1/5] Running EditorConfig lint"
-"$SCRIPT_DIR/run-editorconfig-lint"
+# Format text files with Prettier
+echo -e "\n[1/7] Formatting text files with Prettier"
+"$SCRIPT_DIR/run-prettier"
+
+# Format Python code with Black
+echo -e "\n[2/7] Formatting Python code with Black"
+"$SCRIPT_DIR/run-black"
 
 # Run markdown lint
-echo -e "\n[2/5] Running Markdown lint"
+echo -e "\n[3/7] Running Markdown lint"
 "$SCRIPT_DIR/run-markdown-lint"
 
 # Run shell script lint
-echo -e "\n[3/5] Running ShellCheck"
+echo -e "\n[4/7] Running ShellCheck"
 "$SCRIPT_DIR/run-shellcheck"
 
-# Run Python code lint
-echo -e "\n[4/5] Running Python linter"
+# Run Python linter (check only)
+echo -e "\n[5/7] Running Python linter"
 "$SCRIPT_DIR/run-lint"
 
+# Run editorconfig lint (verification only, after all formatting)
+echo -e "\n[6/7] Running EditorConfig lint"
+"$SCRIPT_DIR/run-editorconfig-lint"
+
 # Run tests
-echo -e "\n[5/5] Running tests"
+echo -e "\n[7/7] Running tests"
 "$SCRIPT_DIR/run-tests"
 
 echo -e "\n===== All checks completed successfully! ====="

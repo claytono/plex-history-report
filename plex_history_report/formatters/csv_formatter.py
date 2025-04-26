@@ -28,35 +28,48 @@ class CsvFormatter(BaseFormatter):
         writer = csv.writer(output)
 
         # Write header row
-        writer.writerow(["Title", "Watched Episodes", "Total Episodes", "Completion Percentage",
-                         "Watch Time (minutes)", "Year", "Last Watched"])
+        writer.writerow(
+            [
+                "Title",
+                "Watched Episodes",
+                "Total Episodes",
+                "Completion Percentage",
+                "Watch Time (minutes)",
+                "Year",
+                "Last Watched",
+            ]
+        )
 
         # Write data rows
         for show in stats:
             last_watched = ""
-            if show['last_watched']:
-                if isinstance(show['last_watched'], datetime):
-                    last_watched = show['last_watched'].strftime("%Y-%m-%d %H:%M:%S")
+            if show["last_watched"]:
+                if isinstance(show["last_watched"], datetime):
+                    last_watched = show["last_watched"].strftime("%Y-%m-%d %H:%M:%S")
                 else:
-                    last_watched = str(show['last_watched'])
+                    last_watched = str(show["last_watched"])
 
-            writer.writerow([
-                show['title'],
-                show['watched_episodes'],
-                show['total_episodes'],
-                f"{show['completion_percentage']:.1f}",
-                show['total_watch_time_minutes'],
-                show['year'] if show['year'] else "",
-                last_watched
-            ])
+            writer.writerow(
+                [
+                    show["title"],
+                    show["watched_episodes"],
+                    show["total_episodes"],
+                    f"{show['completion_percentage']:.1f}",
+                    show["total_watch_time_minutes"],
+                    show["year"] if show["year"] else "",
+                    last_watched,
+                ]
+            )
 
         # Write summary rows
         total_shows = len(stats)
-        watched_shows = sum(1 for show in stats if show['watched_episodes'] > 0)
-        total_episodes = sum(show['total_episodes'] for show in stats)
-        watched_episodes = sum(show['watched_episodes'] for show in stats)
-        total_watch_time = sum(show['total_watch_time_minutes'] for show in stats)
-        completion_percentage = (watched_episodes / total_episodes * 100) if total_episodes > 0 else 0
+        watched_shows = sum(1 for show in stats if show["watched_episodes"] > 0)
+        total_episodes = sum(show["total_episodes"] for show in stats)
+        watched_episodes = sum(show["watched_episodes"] for show in stats)
+        total_watch_time = sum(show["total_watch_time_minutes"] for show in stats)
+        completion_percentage = (
+            (watched_episodes / total_episodes * 100) if total_episodes > 0 else 0
+        )
 
         # Add a blank line before summary
         writer.writerow([])
@@ -87,34 +100,47 @@ class CsvFormatter(BaseFormatter):
         writer = csv.writer(output)
 
         # Write header row
-        writer.writerow(["Title", "Year", "Watch Count", "Last Watched",
-                         "Duration (minutes)", "Watched", "Rating"])
+        writer.writerow(
+            [
+                "Title",
+                "Year",
+                "Watch Count",
+                "Last Watched",
+                "Duration (minutes)",
+                "Watched",
+                "Rating",
+            ]
+        )
 
         # Write data rows
         for movie in stats:
             last_watched = ""
-            if movie['last_watched']:
-                if isinstance(movie['last_watched'], datetime):
-                    last_watched = movie['last_watched'].strftime("%Y-%m-%d %H:%M:%S")
+            if movie["last_watched"]:
+                if isinstance(movie["last_watched"], datetime):
+                    last_watched = movie["last_watched"].strftime("%Y-%m-%d %H:%M:%S")
                 else:
-                    last_watched = str(movie['last_watched'])
+                    last_watched = str(movie["last_watched"])
 
-            writer.writerow([
-                movie['title'],
-                movie['year'] if movie['year'] else "",
-                movie['watch_count'],
-                last_watched,
-                movie['duration_minutes'],
-                "Yes" if movie['watched'] else "No",
-                movie['rating'] if movie['rating'] else ""
-            ])
+            writer.writerow(
+                [
+                    movie["title"],
+                    movie["year"] if movie["year"] else "",
+                    movie["watch_count"],
+                    last_watched,
+                    movie["duration_minutes"],
+                    "Yes" if movie["watched"] else "No",
+                    movie["rating"] if movie["rating"] else "",
+                ]
+            )
 
         # Write summary rows
         total_movies = len(stats)
-        watched_movies = sum(1 for movie in stats if movie['watched'])
-        watch_count = sum(movie['watch_count'] for movie in stats)
-        total_duration = sum(movie['duration_minutes'] for movie in stats)
-        watched_duration = sum(movie['duration_minutes'] * movie['watch_count'] for movie in stats if movie['watched'])
+        watched_movies = sum(1 for movie in stats if movie["watched"])
+        watch_count = sum(movie["watch_count"] for movie in stats)
+        total_duration = sum(movie["duration_minutes"] for movie in stats)
+        watched_duration = sum(
+            movie["duration_minutes"] * movie["watch_count"] for movie in stats if movie["watched"]
+        )
         completion_percentage = (watched_movies / total_movies * 100) if total_movies > 0 else 0
 
         # Add a blank line before summary
@@ -148,26 +174,36 @@ class CsvFormatter(BaseFormatter):
 
         if media_type == "show":
             # Write header row for shows
-            writer.writerow(["Title", "Last Watched", "Watched Episodes", "Total Episodes",
-                           "Completion Percentage", "Watch Time (minutes)"])
+            writer.writerow(
+                [
+                    "Title",
+                    "Last Watched",
+                    "Watched Episodes",
+                    "Total Episodes",
+                    "Completion Percentage",
+                    "Watch Time (minutes)",
+                ]
+            )
 
             # Write data rows for shows
             for show in stats:
                 last_watched = ""
-                if show['last_watched']:
-                    if isinstance(show['last_watched'], datetime):
-                        last_watched = show['last_watched'].strftime("%Y-%m-%d %H:%M:%S")
+                if show["last_watched"]:
+                    if isinstance(show["last_watched"], datetime):
+                        last_watched = show["last_watched"].strftime("%Y-%m-%d %H:%M:%S")
                     else:
-                        last_watched = str(show['last_watched'])
+                        last_watched = str(show["last_watched"])
 
-                writer.writerow([
-                    show['title'],
-                    last_watched,
-                    show['watched_episodes'],
-                    show['total_episodes'],
-                    f"{show['completion_percentage']:.1f}",
-                    show['total_watch_time_minutes']
-                ])
+                writer.writerow(
+                    [
+                        show["title"],
+                        last_watched,
+                        show["watched_episodes"],
+                        show["total_episodes"],
+                        f"{show['completion_percentage']:.1f}",
+                        show["total_watch_time_minutes"],
+                    ]
+                )
         else:  # movies
             # Write header row for movies
             writer.writerow(["Title", "Last Watched", "Watch Count", "Duration (minutes)"])
@@ -175,17 +211,14 @@ class CsvFormatter(BaseFormatter):
             # Write data rows for movies
             for movie in stats:
                 last_watched = ""
-                if movie['last_watched']:
-                    if isinstance(movie['last_watched'], datetime):
-                        last_watched = movie['last_watched'].strftime("%Y-%m-%d %H:%M:%S")
+                if movie["last_watched"]:
+                    if isinstance(movie["last_watched"], datetime):
+                        last_watched = movie["last_watched"].strftime("%Y-%m-%d %H:%M:%S")
                     else:
-                        last_watched = str(movie['last_watched'])
+                        last_watched = str(movie["last_watched"])
 
-                writer.writerow([
-                    movie['title'],
-                    last_watched,
-                    movie['watch_count'],
-                    movie['duration_minutes']
-                ])
+                writer.writerow(
+                    [movie["title"], last_watched, movie["watch_count"], movie["duration_minutes"]]
+                )
 
         return output.getvalue()
