@@ -47,24 +47,13 @@ jobs:
           fi
           echo "Coverage files found at expected locations"
 
-          # Debug - check file format
-          echo "First 30 lines of coverage.xml:"
-          head -n 30 coverage.xml
-
       - name: Python Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-coverage-path: ./coverage.xml
+          pytest-xml-coverage-path: ./coverage.xml
           junitxml-path: ./pytest.xml
           title: Coverage Report
           badge-title: Coverage
-          hide-badge: false
-          hide-report: false
-          create-new-comment: false
-          hide-comment: false
-          report-only-changed-files: false
-          remove-link-from-badge: false
-          coverage-path-prefix: /home/runner/work/plex-history-report/plex-history-report/
 
       - name: Upload coverage reports to artifacts
         uses: actions/upload-artifact@v4
