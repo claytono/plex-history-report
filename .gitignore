@@ -21,6 +21,9 @@ htmlcov/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+coverage.xml
+cobertura.xml
+pytest.xml
 
 # IDE-specific files
 .idea/

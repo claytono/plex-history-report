@@ -9,6 +9,9 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -30,12 +33,16 @@ jobs:
 
       - name: Run coverage
         run: |
-          ./scripts/run-coverage --xml --ci
+          ./scripts/run-coverage --cobertura --ci
 
       - name: Verify coverage files exist
         run: |
           if [ ! -f "./coverage.xml" ]; then
             echo "Error: coverage.xml file not found"
+            exit 1
+          fi
+          if [ ! -f "./cobertura.xml" ]; then
+            echo "Error: cobertura.xml file not found"
             exit 1
           fi
           if [ ! -f "./pytest.xml" ]; then
@@ -47,7 +54,7 @@ jobs:
       - name: Python Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-coverage-path: ./coverage.xml
+          pytest-coverage-path: ./cobertura.xml
           junitxml-path: ./pytest.xml
           title: Coverage Report
           badge-title: Coverage
@@ -57,8 +64,6 @@ jobs:
           hide-comment: false
           report-only-changed-files: false
           remove-link-from-badge: false
-          fail-on-error: true
-          fail-below-min: false
 
       - name: Upload coverage reports to artifacts
         uses: actions/upload-artifact@v4
@@ -66,5 +71,6 @@ jobs:
           name: coverage-reports
           path: |
             coverage.xml
+            cobertura.xml
             pytest.xml
           if-no-files-found: error
