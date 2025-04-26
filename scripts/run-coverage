@@ -1,0 +1,76 @@
+#!/bin/bash
+# Script to run tests with coverage analysis
+
+# Exit on any error
+set -e
+
+# Default to terminal output format
+FORMAT="term"
+SHOW_REPORT=true
+OUTPUT_DIR="htmlcov"
+EXTRA_ARGS=""
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --html)
+            FORMAT="html"
+            shift
+            ;;
+        --xml)
+            FORMAT="xml"
+            shift
+            ;;
+        --no-report)
+            SHOW_REPORT=false
+            shift
+            ;;
+        --output-dir)
+            OUTPUT_DIR="$2"
+            shift 2
+            ;;
+        *)
+            EXTRA_ARGS="$EXTRA_ARGS $1"
+            shift
+            ;;
+    esac
+done
+
+# Ensure uv is installed and available
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv is not installed or not in PATH"
+    echo "Please install uv: https://github.com/astral-sh/uv"
+    exit 1
+fi
+
+# Build coverage command
+COVERAGE_CMD="uv run -m pytest --cov=plex_history_report --cov-report="
+
+# Add format specific options
+if [ "$FORMAT" == "html" ]; then
+    COVERAGE_CMD+="html:$OUTPUT_DIR"
+    echo "Generating HTML coverage report in: $OUTPUT_DIR"
+elif [ "$FORMAT" == "xml" ]; then
+    COVERAGE_CMD+="xml:coverage.xml"
+    echo "Generating XML coverage report: coverage.xml"
+else
+    if [ "$SHOW_REPORT" = true ]; then
+        COVERAGE_CMD+="term-missing"
+    else
+        COVERAGE_CMD+="term"
+    fi
+fi
+
+# Add any extra arguments
+COVERAGE_CMD+=" $EXTRA_ARGS"
+
+# Run coverage
+echo "Running tests with coverage..."
+eval "$COVERAGE_CMD"
+
+# Show results summary
+if [ "$FORMAT" == "html" ]; then
+    echo "Coverage report generated in: $OUTPUT_DIR/index.html"
+elif [ "$FORMAT" == "xml" ]; then
+    echo "Coverage XML report generated: coverage.xml"
+fi
