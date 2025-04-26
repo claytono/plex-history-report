@@ -1,4 +1,4 @@
-name: Python Linting
+name: Black Python Formatting
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  lint:
+  black:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +27,13 @@ jobs:
         run: |
           uv venv
 
-      - name: Run linter
+      - name: Run Black formatter
         run: |
-          ./scripts/run-lint
+          ./scripts/run-black
+
+      - name: Check for formatting changes
+        run: |
+          if ! git --no-pager diff --exit-code; then
+            echo "::error::Black found formatting issues. Please run ./scripts/run-black locally and commit the changes."
+            exit 1
+          fi
