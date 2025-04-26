@@ -15,6 +15,8 @@
 - Ensure no trailing whitespace is added to lines and all edited files have a final newline.
 - Prefer editing files directly using your tools, instead of using shell commands.
 - Only add comments to the code if they are necessary for understanding the code.
+- Never run shellcheck or other linting tools directly; always use the corresponding
+  `./scripts/run-*` scripts (e.g., `./scripts/run-shellcheck`, `./scripts/run-black`, etc.).
 
 ## GitHub Workflow
 
@@ -32,9 +34,10 @@
 
 ### Monitoring CI Status
 
-- After pushing changes to a pull request, always run `./scripts/check-gh-actions` to monitor CI status and wait for the workflows to complete.
-- Use the exit code from the script to determine if all checks passed (exit code 0) or some failed (non-zero exit code).
-- If any CI checks fail, examine the logs provided by the script to diagnose and fix the issues before proceeding.
+- After pushing changes to a pull request, always run
+  `./scripts/check-gh-actions` to monitor CI status and wait for workflows to complete.
+- If any CI checks fail, examine the logs provided by the script to diagnose
+  and fix the issues before proceeding.
 
 ## Git Workflow
 
