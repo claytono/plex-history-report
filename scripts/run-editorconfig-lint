@@ -69,9 +69,13 @@ if [ $# -eq 0 ]; then
     # Get all tracked files from git
     ARGS=()
     while IFS= read -r file; do
-        # Skip Markdown files (handled by Prettier/markdown-lint)
-        if [[ "$file" != *.md ]]; then
-            ARGS+=("$file")
+        # Skip .bin directory and Markdown files
+        if [[ "$file" != .bin/* && "$file" != *.md ]]; then
+            # Check if the file is a text file by looking for null bytes
+            # Binary files almost always contain null bytes, text files almost never do
+            if ! grep -q -U $'\x00' "$file" 2>/dev/null; then
+                ARGS+=("$file")
+            fi
         fi
     done < <(git --no-pager ls-files)
 else

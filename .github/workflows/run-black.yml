@@ -30,7 +30,7 @@ jobs:
       - name: Run Black formatter
         run: |
           ./scripts/run-black
-          
+
       - name: Check for formatting changes
         run: |
           if ! git --no-pager diff --exit-code; then
