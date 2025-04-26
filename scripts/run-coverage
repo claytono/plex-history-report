@@ -21,3 +21,4 @@ uv run -m pytest --cov=plex_history_report --cov-report=xml --cov-report=html "$
 
 echo -e "\nCoverage reports generated: coverage.xml and htmlcov/"
 echo "To view HTML report, open: htmlcov/index.html"
+
