@@ -78,53 +78,74 @@ fi
 echo "Checking workflow runs for branch: ${BRANCH}"
 echo "Repository: ${REPO_PATH}"
 
-# Function to get detailed logs for failed runs
-get_failed_run_logs() {
-    # Get recent workflow runs that failed
-    echo "Checking for failed workflow runs..."
+# Function to get PR number for current branch
+get_pr_number() {
+    local branch="$1"
+    gh pr list --head "$branch" --json number --jq '.[0].number'
+}
 
-    # Try to get a PR number if we don't already have it
-    PR_NUMBER=""
-    if [[ -z "$PR_ARG" ]]; then
-        PR_NUMBER=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
-    else
-        PR_NUMBER="$PR_ARG"
+# Function to check for failed runs and get their logs
+get_failed_checks_logs() {
+    local pr_number="$1"
+    
+    if [[ -z "$pr_number" ]]; then
+        echo "No PR number provided, unable to get failed checks."
+        return 1
     fi
-
-    if [[ -n "$PR_NUMBER" ]]; then
-        # Get information about the failed checks
-        FAILED_CHECKS=$(gh pr checks "$PR_NUMBER" --json name,conclusion,url --jq '.[] | select(.conclusion != "success" and .conclusion != null)')
-
-        if [[ -n "$FAILED_CHECKS" ]]; then
-            echo "Found failed checks. Retrieving detailed logs..."
-
-            # List recent failed workflow runs
-            FAILED_RUNS=$(gh run list --branch "$BRANCH" --json databaseId,name,conclusion,url --jq '.[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != null)')
-
-            if [[ -n "$FAILED_RUNS" ]]; then
-                echo "$FAILED_RUNS" | jq -c '.' | while read -r run; do
-                    run_id=$(echo "$run" | jq -r '.databaseId')
-                    run_name=$(echo "$run" | jq -r '.name')
-                    echo "===== Failed workflow: $run_name (ID: $run_id) ====="
-                    echo "Retrieving logs..."
-                    gh run view "$run_id" --log
-                    echo "============================================================"
-                done
-            else
-                echo "No detailed logs available for the failed checks."
-            fi
+    
+    echo "Checking for failed checks in PR #$pr_number..."
+    
+    # Get all checks with their status in JSON format
+    local checks_json
+    checks_json=$(gh pr checks "$pr_number" --json name,state,link)
+    
+    # Extract failed checks
+    local failed_checks
+    failed_checks=$(echo "$checks_json" | jq -c '.[] | select(.state != "SUCCESS" and .state != "PENDING" and .state != "QUEUED")')
+    
+    if [[ -z "$failed_checks" ]]; then
+        echo "No failed checks found."
+        return 0
+    fi
+    
+    echo "Found failed checks:"
+    
+    # Process each failed check
+    echo "$failed_checks" | jq -c '.' | while read -r check; do
+        local name
+        local state
+        local link
+        name=$(echo "$check" | jq -r '.name')
+        state=$(echo "$check" | jq -r '.state')
+        link=$(echo "$check" | jq -r '.link')
+        
+        echo "- $name: $state"
+        
+        # Extract run ID from the link
+        local run_id
+        run_id=$(echo "$link" | sed -n 's/.*\/runs\/\([0-9]*\).*/\1/p')
+        
+        if [[ -n "$run_id" ]]; then
+            echo "Retrieving logs for run ID: $run_id"
+            echo "========== Logs for $name (Run ID: $run_id) =========="
+            gh run view "$run_id" --log-failed || echo "Failed to retrieve logs for run ID: $run_id"
+            echo "======================================================="
+        else
+            echo "Could not extract run ID from link: $link"
         fi
-    fi
+    done
+    
+    return 1  # Return non-zero to indicate failed checks
 }
 
 if [[ "$WAIT_FOR_COMPLETION" == "true" ]]; then
     echo "Waiting for workflows to complete (timeout: ${TIMEOUT}s)..."
-
+    
     # Use gh pr checks with --watch and optional --fail-fast
     echo "Checking PR status every ${WATCH_INTERVAL} seconds..."
     gh pr checks "$PR_ARG" --watch --interval "$WATCH_INTERVAL" $FAIL_FAST
     EXIT_CODE=$?
-
+    
     if [[ $EXIT_CODE -eq 0 ]]; then
         echo "All checks passed successfully!"
     elif [[ $EXIT_CODE -eq 8 ]]; then
@@ -132,20 +153,41 @@ if [[ "$WAIT_FOR_COMPLETION" == "true" ]]; then
         exit 1
     else
         echo "Some checks failed. See details below:"
-        gh pr checks "$PR_ARG" --required
-        get_failed_run_logs
-        exit $EXIT_CODE
+        # After waiting for checks to complete, we need to get the PR number
+        PR_NUMBER=""
+        if [[ -z "$PR_ARG" ]]; then
+            PR_NUMBER=$(get_pr_number "$BRANCH")
+        else
+            PR_NUMBER="$PR_ARG"
+        fi
+        get_failed_checks_logs "$PR_NUMBER"
+        exit $?
     fi
 else
     # Just show the current status without waiting
     echo "Current CI status:"
-    gh pr checks "$PR_ARG"
+    
+    # Get PR number
+    PR_NUMBER=""
+    if [[ -z "$PR_ARG" ]]; then
+        PR_NUMBER=$(get_pr_number "$BRANCH")
+    else
+        PR_NUMBER="$PR_ARG"
+    fi
+    
+    if [[ -z "$PR_NUMBER" ]]; then
+        echo "No PR found for branch: $BRANCH"
+        exit 1
+    fi
+    
+    # Display checks status without waiting
+    gh pr checks "$PR_NUMBER"
     EXIT_CODE=$?
-
+    
     if [[ $EXIT_CODE -ne 0 ]]; then
-        echo "Use the default wait mode to monitor checks until completion."
-        get_failed_run_logs
-        exit $EXIT_CODE
+        echo "Failed checks detected:"
+        get_failed_checks_logs "$PR_NUMBER"
+        exit $?
     fi
 fi
 
