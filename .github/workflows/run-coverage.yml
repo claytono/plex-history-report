@@ -46,7 +46,7 @@ jobs:
             exit 1
           fi
           echo "Coverage files found at expected locations"
-          
+
           # Debug - check file format
           echo "First 30 lines of coverage.xml:"
           head -n 30 coverage.xml
