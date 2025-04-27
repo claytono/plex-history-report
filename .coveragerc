@@ -1,0 +1,22 @@
+[run]
+source = plex_history_report
+branch = True
+omit =
+    */tests/*
+    */site-packages/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    except ImportError
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml
