@@ -903,28 +903,31 @@ class TestPlexClientRecentlyWatched(unittest.TestCase):
         self.mock_movie2.username = "user2"
 
         # Configure server to return history - properly handle limit parameter
-        def mock_history_function(_=None, type=None, username=None, limit=None):
+        def mock_history_function(type, username=None, limit=None):
             if type == "episode":
-                results = []
                 episodes = []
-                
+
                 # Filter by username if provided
                 if username == "user1":
                     episodes = [self.mock_episode1]
                 elif username == "user2":
                     episodes = [self.mock_episode2]
                 else:
-                    episodes = [self.mock_episode1, self.mock_episode2, self.mock_invalid, self.mock_error_episode]
-                
+                    episodes = [
+                        self.mock_episode1,
+                        self.mock_episode2,
+                        self.mock_invalid,
+                        self.mock_error_episode,
+                    ]
+
                 # Apply limit if provided
                 if limit is not None:
                     episodes = episodes[:limit]
-                
+
                 return episodes
             elif type == "movie":
-                results = []
                 movies = []
-                
+
                 # Filter by username if provided
                 if username == "user1":
                     movies = [self.mock_movie1]
@@ -932,15 +935,15 @@ class TestPlexClientRecentlyWatched(unittest.TestCase):
                     movies = [self.mock_movie2]
                 else:
                     movies = [self.mock_movie1, self.mock_movie2]
-                
+
                 # Apply limit if provided
                 if limit is not None:
                     movies = movies[:limit]
-                
+
                 return movies
             else:
                 return []
-        
+
         self.mock_server.history = mock_history_function
 
     def tearDown(self):
@@ -1031,16 +1034,16 @@ class TestPlexClientRecentlyWatched(unittest.TestCase):
         """Test error handling in get_recently_watched_shows."""
         # Store the original history function
         original_history_function = self.mock_server.history
-        
+
         # Configure server to raise exception
         self.mock_server.history = MagicMock(side_effect=Exception("Failed to get history"))
-        
+
         client = PlexClient(self.base_url, self.token)
         shows = client.get_recently_watched_shows()
-        
+
         # Should return empty list on error
         self.assertEqual(shows, [])
-        
+
         # Restore original history function for other tests
         self.mock_server.history = original_history_function
 
@@ -1122,15 +1125,15 @@ class TestPlexClientRecentlyWatched(unittest.TestCase):
         """Test error handling in get_recently_watched_movies."""
         # Store the original history function
         original_history_function = self.mock_server.history
-        
+
         # Configure server to raise exception
         self.mock_server.history = MagicMock(side_effect=Exception("Failed to get history"))
-        
+
         client = PlexClient(self.base_url, self.token)
         movies = client.get_recently_watched_movies()
-        
+
         # Should return empty list on error
         self.assertEqual(movies, [])
-        
+
         # Restore original history function for other tests
         self.mock_server.history = original_history_function
