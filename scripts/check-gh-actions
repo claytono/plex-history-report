@@ -104,13 +104,11 @@ get_pr_number() {
 # Function to check if a check should be excluded
 should_exclude_check() {
     local check_name="$1"
-    
     for pattern in "${EXCLUDE_PATTERNS[@]}"; do
         if [[ "$check_name" == *"$pattern"* ]]; then
             return 0  # True, should exclude
         fi
     done
-    
     return 1  # False, should not exclude
 }
 
@@ -130,28 +128,28 @@ get_failed_checks_logs() {
     # Get all checks with their state in JSON format
     local checks_json
     checks_json=$(gh pr checks "$pr_number" --json name,state,link)
-    
+
     # Simple approach: Loop through all checks and handle them individually
     local total_checks
     total_checks=$(echo "$checks_json" | jq '. | length')
-    
+
     for ((i=0; i<total_checks; i++)); do
         local check_json
         check_json=$(echo "$checks_json" | jq ".[$i]")
-        
+
         local name
         local state
         local link
-        
+
         name=$(echo "$check_json" | jq -r '.name')
         state=$(echo "$check_json" | jq -r '.state')
         link=$(echo "$check_json" | jq -r '.link')
-        
+
         # Skip successful checks
         if [[ "$state" == "SUCCESS" ]]; then
             continue
         fi
-        
+
         # Check if this check should be excluded
         if should_exclude_check "$name"; then
             excluded_count=$((excluded_count + 1))
@@ -183,11 +181,11 @@ get_failed_checks_logs() {
     if [[ $failed_count -gt 0 ]]; then
         return 1
     fi
-    
+
     if [[ $excluded_count -gt 0 ]]; then
         echo "All failing checks were in the exclusion list. Considering this a success!"
     fi
-    
+
     return 0
 }
 
