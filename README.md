@@ -153,11 +153,13 @@ Run the test suite using the included test runner:
 ./scripts/run-tests
 ```
 
-This will run the tests with coverage analysis and display a summary of the coverage results in the terminal. Detailed coverage reports are also generated in HTML and XML formats.
+This will run the tests with coverage analysis and display a summary of the coverage results in the
+terminal. Detailed coverage reports are also generated in HTML and XML formats.
 
 #### Coverage Reports
 
 After running tests, you can:
+
 - View the terminal coverage summary showing code coverage percentages
 - Open the HTML report at `htmlcov/index.html` for detailed line-by-line coverage
 - Use the XML report at `coverage.xml` for integration with CI tools

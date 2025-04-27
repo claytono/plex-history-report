@@ -1,7 +1,7 @@
 [run]
 source = plex_history_report
 branch = True
-omit = 
+omit =
     */tests/*
     */site-packages/*
 
