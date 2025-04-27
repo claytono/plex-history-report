@@ -68,8 +68,8 @@
 
 ## Testing and Committing
 
-- Before making a commit, offer to run the linter and tests to ensure everything is working
-  correctly. Use `./scripts/run-all-checks` to run all checks at once.
+- Before making a commit or encountering any CI issues run the linter and tests to ensure everything
+  is working correctly. Use `./scripts/run-all-checks` to run all checks at once.
 - When making a commit:
   - Write clear, descriptive commit messages that explain the "why" not just the "what"
   - Use the imperative mood in the subject line (e.g., "Fix bug" not "Fixed bug")
