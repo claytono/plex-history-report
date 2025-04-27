@@ -19,7 +19,7 @@ dependencies = ["plexapi>=4.15.0", "rich>=13.0.0", "pyyaml>=6.0"]
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
-    "pytest-cov>=4.1.0",
+    "coverage>=7.0.0",      # Added direct dependency on coverage.py
     "codecov>=2.1.13",
     "black>=23.0.0",
     "isort>=5.12.0",
@@ -69,4 +69,3 @@ docstring-code-format = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
-addopts = "--cov=plex_history_report --cov-report=xml --cov-report=html"

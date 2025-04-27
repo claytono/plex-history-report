@@ -23,19 +23,30 @@ fi
 echo "Installing package in development mode..."
 uv pip install -e .[dev]
 
-# Run tests with pytest via uvx
-# Change to virtual environment created by uv
-echo "Running tests with coverage: pytest ${ARGS[*]}"
-if ! uv run -m pytest "${ARGS[@]}"; then
+# Run tests with coverage.py directly
+echo "Running tests with coverage.py: ${ARGS[*]}"
+
+# First, run coverage to erase any previous data
+uv run coverage erase
+
+# Run the tests with coverage
+if ! uv run coverage run --source=plex_history_report -m pytest "${ARGS[@]}"; then
     echo -e "\nTests failed."
     exit 1
 fi
 
-# Print a summary of the code coverage
-if [ -f "coverage.xml" ]; then
-    echo -e "\nCoverage report generated:"
-    echo " - XML report: coverage.xml"
-    echo " - HTML report: htmlcov/index.html"
-fi
+# Generate reports
+echo -e "\nGenerating coverage reports..."
+uv run coverage xml
+uv run coverage html
+
+# Display a focused coverage summary in the terminal
+# Skip fully covered files and sort by coverage percentage (lowest first)
+echo -e "\n=== Coverage Summary ==="
+uv run coverage report --skip-covered --sort=cover
+
+echo -e "\nDetailed coverage reports generated:"
+echo " - XML report: coverage.xml"
+echo " - HTML report: htmlcov/index.html"
 
 echo -e "\nAll tests passed!"
