@@ -9,6 +9,8 @@ from plexapi.library import LibrarySection
 from plexapi.server import PlexServer
 from plexapi.video import Movie, Show
 
+from plex_history_report.utils import timing_decorator
+
 logger = logging.getLogger(__name__)
 
 
@@ -69,6 +71,7 @@ class PlexClient:
             logger.warning(f"Failed to get user list: {e}")
             return []
 
+    @timing_decorator
     def get_library_sections(self) -> List[LibrarySection]:
         """Get all library sections from the Plex server.
 
@@ -77,6 +80,7 @@ class PlexClient:
         """
         return self.server.library.sections()
 
+    @timing_decorator
     def get_all_show_statistics(
         self,
         username: Optional[str] = None,
@@ -153,6 +157,7 @@ class PlexClient:
 
         return show_stats
 
+    @timing_decorator
     def _get_show_statistics(self, show: Show, username: Optional[str] = None) -> Dict:
         """Get statistics for a single show.
 
@@ -262,6 +267,7 @@ class PlexClient:
                 "error": str(e),
             }
 
+    @timing_decorator
     def get_all_movie_statistics(
         self,
         username: Optional[str] = None,
@@ -335,6 +341,7 @@ class PlexClient:
 
         return movie_stats
 
+    @timing_decorator
     def _get_movie_statistics(self, movie: Movie, username: Optional[str] = None) -> Dict:
         """Get statistics for a single movie.
 
