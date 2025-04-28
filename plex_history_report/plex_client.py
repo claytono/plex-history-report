@@ -191,7 +191,7 @@ class PlexClient:
                     # Get watch history for specific user
                     try:
                         # Get history for this user
-                        history = episode.history(username=username, minviews=1)
+                        history = episode.history(username=username)
                         watched = bool(history)
 
                         # Update last watched date if needed
@@ -373,7 +373,7 @@ class PlexClient:
             if username:
                 # Get history for specific user
                 try:
-                    history = movie.history(username=username, minviews=1)
+                    history = movie.history(username=username)
                     watch_count = len(history)
                     watched = bool(history)
 
