@@ -113,10 +113,12 @@ class PlexClient:
             logger.warning("No TV library sections found")
             return []
 
-        # Fetch all shows from all TV sections
+        # Fetch all shows from all TV sections with minimal fields
         all_shows = []
         for section in tv_sections:
-            all_shows.extend(section.all())
+            # Get all shows in this section
+            shows = section.all()
+            all_shows.extend(shows)
 
         # Process each show
         show_stats = []
@@ -188,7 +190,8 @@ class PlexClient:
                 if username:
                     # Get watch history for specific user
                     try:
-                        history = episode.history(username=username)
+                        # Get history for this user
+                        history = episode.history(username=username, minviews=1)
                         watched = bool(history)
 
                         # Update last watched date if needed
@@ -211,9 +214,14 @@ class PlexClient:
                     # Check if episode is marked as watched globally
                     watched = episode.isWatched
 
+                    # Add watch time to total when episode is marked as watched
+                    if watched and episode.duration:
+                        total_watch_time += episode.duration / 60000  # Convert ms to minutes
+
                     # Get history for all users
                     try:
-                        history = episode.history()
+                        # Get all history
+                        history = episode.history(minviews=1)
                         if history:
                             for entry in history:
                                 watch_date = entry.viewedAt
@@ -221,10 +229,6 @@ class PlexClient:
                                     last_watched_date is None or watch_date > last_watched_date
                                 ):
                                     last_watched_date = watch_date
-
-                                # Add watch time to total (ms to minutes)
-                                if episode.duration:
-                                    total_watch_time += episode.duration / 60000
                     except Exception as e:
                         logger.debug(f"Error getting history for episode: {e}")
 
@@ -303,7 +307,9 @@ class PlexClient:
         # Fetch all movies from all movie sections
         all_movies = []
         for section in movie_sections:
-            all_movies.extend(section.all())
+            # Get all movies in this section
+            movies = section.all()
+            all_movies.extend(movies)
 
         # Process each movie
         movie_stats = []
@@ -367,7 +373,7 @@ class PlexClient:
             if username:
                 # Get history for specific user
                 try:
-                    history = movie.history(username=username)
+                    history = movie.history(username=username, minviews=1)
                     watch_count = len(history)
                     watched = bool(history)
 
@@ -397,7 +403,7 @@ class PlexClient:
 
                 # Get history for all users
                 try:
-                    history = movie.history()
+                    history = movie.history(minviews=1)
                     watch_count = len(history)
 
                     # Get last watched date across all users
@@ -479,10 +485,17 @@ class PlexClient:
 
         try:
             # Get recently watched episodes
+            # Request 3x the limit to account for duplicates that will be filtered
+            query_limit = limit * 3
+
             if username:
-                history = self.server.history(limit=limit * 3, type="episode", username=username)
+                history = self.server.history(
+                    limit=query_limit,
+                    type="episode",
+                    username=username,
+                )
             else:
-                history = self.server.history(limit=limit * 3, type="episode")
+                history = self.server.history(limit=query_limit, type="episode")
 
             if not history:
                 return []

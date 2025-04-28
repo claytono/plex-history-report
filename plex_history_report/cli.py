@@ -150,9 +150,19 @@ def run(args: argparse.Namespace) -> int:
         logging.getLogger("plex_history_report").setLevel(logging.INFO)
         logger.info("Performance benchmarking enabled")
 
+        # Set the global benchmarking flag
+        from plex_history_report.utils import set_benchmarking
+
+        set_benchmarking(True)
+
         # Add the performance handler
         performance_handler = PerformanceLogHandler(performance_data)
         logging.getLogger("plex_history_report").addHandler(performance_handler)
+    else:
+        # Ensure benchmarking is disabled
+        from plex_history_report.utils import set_benchmarking
+
+        set_benchmarking(False)
 
     # Create default config if requested
     if args.create_config:

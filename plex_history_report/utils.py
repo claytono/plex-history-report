@@ -7,6 +7,19 @@ from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+# Global variable to track whether benchmarking is enabled
+benchmarking_enabled = False
+
+
+def set_benchmarking(enabled: bool) -> None:
+    """Enable or disable benchmarking globally.
+
+    Args:
+        enabled: Whether benchmarking should be enabled.
+    """
+    global benchmarking_enabled
+    benchmarking_enabled = enabled
+
 
 def timing_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to measure function execution time.
@@ -20,18 +33,23 @@ def timing_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        # Get the class name if method belongs to a class
-        if args and hasattr(args[0], "__class__"):
-            class_name = args[0].__class__.__name__
-            name = f"{class_name}.{func.__name__}"
+        # Only measure and log time if benchmarking is enabled
+        if benchmarking_enabled:
+            start_time = time.time()
+            result = func(*args, **kwargs)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            # Get the class name if method belongs to a class
+            if args and hasattr(args[0], "__class__"):
+                class_name = args[0].__class__.__name__
+                name = f"{class_name}.{func.__name__}"
+            else:
+                name = func.__name__
+            logger.info(f"PERFORMANCE: {name} took {elapsed_time:.2f} seconds")
+            return result
         else:
-            name = func.__name__
-        logger.info(f"PERFORMANCE: {name} took {elapsed_time:.2f} seconds")
-        return result
+            # Just call the function without timing if benchmarking is disabled
+            return func(*args, **kwargs)
 
     return wrapper
 
