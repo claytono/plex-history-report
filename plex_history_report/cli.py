@@ -19,6 +19,7 @@ from plex_history_report.config import (
 )
 from plex_history_report.formatters import FormatterFactory
 from plex_history_report.plex_client import PlexClient, PlexClientError
+from plex_history_report.utils import PerformanceLogHandler
 
 # Configure logging
 logging.basicConfig(
@@ -83,6 +84,12 @@ def configure_parser() -> argparse.ArgumentParser:
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
 
     parser.add_argument(
+        "--benchmark",
+        action="store_true",
+        help="Enable performance benchmarking and log detailed timing information",
+    )
+
+    parser.add_argument(
         "--user",
         type=str,
         help="Filter statistics for a specific Plex user (overrides default_user in config)",
@@ -131,11 +138,31 @@ def run(args: argparse.Namespace) -> int:
         Exit code.
     """
     console = Console()
+    performance_data = {}
 
     # Configure logging level
     if args.debug:
         logging.getLogger("plex_history_report").setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled")
+
+    # Enable performance logging if benchmark mode is enabled
+    if args.benchmark:
+        logging.getLogger("plex_history_report").setLevel(logging.INFO)
+        logger.info("Performance benchmarking enabled")
+
+        # Set the global benchmarking flag
+        from plex_history_report.utils import set_benchmarking
+
+        set_benchmarking(True)
+
+        # Add the performance handler
+        performance_handler = PerformanceLogHandler(performance_data)
+        logging.getLogger("plex_history_report").addHandler(performance_handler)
+    else:
+        # Ensure benchmarking is disabled
+        from plex_history_report.utils import set_benchmarking
+
+        set_benchmarking(False)
 
     # Create default config if requested
     if args.create_config:
@@ -273,6 +300,28 @@ def run(args: argparse.Namespace) -> int:
 
         # Use the standardized display_output method to print to console
         formatter.display_output(console, outputs)
+
+        # Display performance report if benchmark mode is enabled
+        if args.benchmark and performance_data:
+            console.print("\n[bold]Performance Benchmark Report:[/bold]")
+            console.print("=" * 60)
+
+            # Sort functions by total time spent
+            total_times = {func: sum(times) for func, times in performance_data.items()}
+            sorted_funcs = sorted(total_times.keys(), key=lambda f: total_times[f], reverse=True)
+
+            # Display table of results
+            console.print(f"{'Function':<40} {'Calls':<8} {'Total (s)':<12} {'Avg (s)':<12}")
+            console.print("-" * 60)
+
+            for func in sorted_funcs:
+                times = performance_data[func]
+                calls = len(times)
+                total = sum(times)
+                avg = total / calls
+                console.print(f"{func:<40} {calls:<8} {total:<12.2f} {avg:<12.2f}")
+
+            console.print("=" * 60)
 
         return 0
 
