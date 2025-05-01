@@ -90,6 +90,12 @@ def configure_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--record",
+        choices=["raw-data", "test-data", "both"],
+        help="Record Plex API data: raw-data (non-anonymized), test-data (anonymized), or both",
+    )
+
+    parser.add_argument(
         "--user",
         type=str,
         help="Filter statistics for a specific Plex user (overrides default_user in config)",
@@ -206,7 +212,18 @@ def run(args: argparse.Namespace) -> int:
     try:
         # Connect to Plex server
         plex_config = config["plex"]
-        client = PlexClient(plex_config["base_url"], plex_config["token"])
+
+        # Set up data recorder if requested
+        data_recorder = None
+        if args.record:
+            from plex_history_report.recorders import PlexDataRecorder
+
+            data_recorder = PlexDataRecorder(mode=args.record)
+            logger.info(f"Recording Plex data in '{args.record}' mode")
+
+        client = PlexClient(
+            plex_config["base_url"], plex_config["token"], data_recorder=data_recorder
+        )
 
         # List users if requested
         if args.list_users:
@@ -289,6 +306,11 @@ def run(args: argparse.Namespace) -> int:
                 recently_watched = client.get_recently_watched_shows(username=username)
             else:
                 recently_watched = client.get_recently_watched_movies(username=username)
+
+        # Skip formatting and displaying output if in record mode
+        if args.record:
+            logger.info("Record mode active - skipping normal output display")
+            return 0
 
         # Use the standardized format_content method for all formatters
         outputs = formatter.format_content(
