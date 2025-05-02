@@ -1,3 +1,4 @@
+# flake8: noqa: N815,ARG005
 import json
 import random
 from datetime import datetime
