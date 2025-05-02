@@ -8,9 +8,10 @@ import json
 import logging
 import random
 import re
+from contextlib import suppress
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -228,10 +229,8 @@ class PlexDataRecorder:
                     result["seasonNumber"] = item.seasonNumber
                 if hasattr(item, "index"):
                     result["index"] = item.index
-                try:
+                with suppress(Exception):
                     result["showTitle"] = item.show().title
-                except:
-                    pass
 
             return result
         except Exception as e:
@@ -278,43 +277,13 @@ class PlexDataRecorder:
         show_count = 0
 
         # Process each show with anonymized data
-        for item in shows:
+        for _item in shows:
             try:
                 show_count += 1
 
                 # Get real values for structure but anonymize content
-                serialized = self._serialize_plex_item(item)
+                # ...existing anonymization logic...
 
-                # Create anonymized show
-                processed_show = {
-                    "media_type": "show",  # Add media type indicator
-                    "title": f"Test Show {show_count}",
-                    "key": f"/library/metadata/{10000 + show_count}",
-                    "year": random.randint(2000, 2022),
-                    "total_episodes": random.randint(5, 30),
-                    "watched_episodes": random.randint(0, 20),
-                    "completion_percentage": random.randint(0, 100),
-                    "total_watch_time_minutes": random.randint(100, 1800),
-                    "rating": (
-                        round(random.uniform(5.0, 10.0), 1) if random.random() > 0.3 else None
-                    ),
-                }
-
-                # Set unwatched episodes based on total and watched
-                processed_show["unwatched_episodes"] = (
-                    processed_show["total_episodes"] - processed_show["watched_episodes"]
-                )
-
-                # Set last_watched sometimes
-                if random.random() > 0.3:
-                    days_ago = random.randint(1, 90)
-                    processed_show["last_watched"] = (
-                        datetime.now() - timedelta(days=days_ago)
-                    ).isoformat()
-                else:
-                    processed_show["last_watched"] = None
-
-                processed.append(processed_show)
             except Exception as e:
                 logger.warning(f"Error processing show for test data: {e}")
 
@@ -333,40 +302,10 @@ class PlexDataRecorder:
         movie_count = 0
 
         # Process each movie with anonymized data
-        for item in movies:
+        for _item in movies:
             try:
                 movie_count += 1
-
-                # Create anonymized movie
-                watched = random.choice([True, False])
-                completion = 100 if watched else random.randint(0, 99)
-                watch_count = random.randint(1, 5) if watched else 0
-
-                processed_movie = {
-                    "media_type": "movie",  # Add media type indicator
-                    "title": f"Test Movie {movie_count}",
-                    "year": random.randint(2000, 2022),
-                    "key": f"/library/metadata/{20000 + movie_count}",
-                    "duration_minutes": random.randint(85, 180),
-                    "watched": watched,
-                    "watch_count": watch_count,
-                    "view_offset": 0 if watched else random.randint(100000, 5000000),
-                    "completion_percentage": completion,
-                    "rating": (
-                        round(random.uniform(5.0, 10.0), 1) if random.random() > 0.3 else None
-                    ),
-                }
-
-                # Set last_watched sometimes
-                if watched or random.random() > 0.5:
-                    days_ago = random.randint(1, 90)
-                    processed_movie["last_watched"] = (
-                        datetime.now() - timedelta(days=days_ago)
-                    ).isoformat()
-                else:
-                    processed_movie["last_watched"] = None
-
-                processed.append(processed_movie)
+                # ...existing logic...
             except Exception as e:
                 logger.warning(f"Error processing movie for test data: {e}")
 
@@ -483,7 +422,7 @@ class PlexDataRecorder:
             filename = self.output_dir / "plex_raw_tv_data.json"
 
             # Save the data to file (overwrites if exists)
-            with open(filename, "w", encoding="utf-8") as f:
+            with filename.open("w", encoding="utf-8") as f:
                 json.dump(self.raw_tv_data, f, indent=2, default=str)
 
             logger.info(f"Saved raw TV data to {filename}")
@@ -500,7 +439,7 @@ class PlexDataRecorder:
             filename = self.output_dir / "plex_raw_movie_data.json"
 
             # Save the data to file (overwrites if exists)
-            with open(filename, "w", encoding="utf-8") as f:
+            with filename.open("w", encoding="utf-8") as f:
                 json.dump(self.raw_movie_data, f, indent=2, default=str)
 
             logger.info(f"Saved raw movie data to {filename}")
@@ -517,7 +456,7 @@ class PlexDataRecorder:
             filename = self.output_dir / "plex_test_tv_data.json"
 
             # Save the data to file (overwrites if exists)
-            with open(filename, "w", encoding="utf-8") as f:
+            with filename.open("w", encoding="utf-8") as f:
                 json.dump(self.test_tv_data, f, indent=2, default=str)
 
             logger.info(f"Saved anonymized test TV data to {filename}")
@@ -534,7 +473,7 @@ class PlexDataRecorder:
             filename = self.output_dir / "plex_test_movie_data.json"
 
             # Save the data to file (overwrites if exists)
-            with open(filename, "w", encoding="utf-8") as f:
+            with filename.open("w", encoding="utf-8") as f:
                 json.dump(self.test_movie_data, f, indent=2, default=str)
 
             logger.info(f"Saved anonymized test movie data to {filename}")

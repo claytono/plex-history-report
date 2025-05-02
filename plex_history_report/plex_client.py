@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Protocol
+from typing import Any, Dict, List, Optional
 
 from plexapi.exceptions import Unauthorized
 from plexapi.library import LibrarySection
