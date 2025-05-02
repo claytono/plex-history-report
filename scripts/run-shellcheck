@@ -18,7 +18,10 @@ if [ $# -eq 0 ]; then
     while IFS= read -r file; do
         # Check if file is executable
         if [ -x "$file" ] && [ -f "$file" ]; then
-            ARGS+=("$file")
+            # Only include files with bash shebang
+            if head -n 1 "$file" | grep -q "^#!/.*\(bash\|sh\)"; then
+                ARGS+=("$file")
+            fi
         fi
     done < <(find bin scripts -type f -not -path "*/\.*")
 else

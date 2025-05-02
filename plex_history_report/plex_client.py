@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from plexapi.exceptions import Unauthorized
 from plexapi.library import LibrarySection
@@ -23,18 +23,25 @@ class PlexClientError(Exception):
 class PlexClient:
     """Client for interacting with a Plex server."""
 
-    def __init__(self, base_url: str, token: str):
+    def __init__(
+        self,
+        base_url: str,
+        token: str,
+        data_recorder: Optional[Any] = None,
+    ):
         """Initialize the Plex client.
 
         Args:
             base_url: Base URL for the Plex server.
             token: Authentication token for the Plex server.
+            data_recorder: Optional callback for recording Plex data.
 
         Raises:
             PlexClientError: If connection to the Plex server fails.
         """
         self.base_url = base_url
         self.token = token
+        self.data_recorder = data_recorder
 
         try:
             logger.debug(f"Connecting to Plex server at {base_url}")
@@ -119,6 +126,10 @@ class PlexClient:
             # Get all shows in this section
             shows = section.all()
             all_shows.extend(shows)
+
+        # Record data if a recorder is provided
+        if self.data_recorder:
+            self.data_recorder.record_data("all_shows", all_shows)
 
         # Process each show
         show_stats = []
@@ -311,6 +322,10 @@ class PlexClient:
             movies = section.all()
             all_movies.extend(movies)
 
+        # Record data if a recorder is provided
+        if self.data_recorder:
+            self.data_recorder.record_data("all_movies", all_movies)
+
         # Process each movie
         movie_stats = []
         for movie in all_movies:
@@ -500,6 +515,10 @@ class PlexClient:
             if not history:
                 return []
 
+            # Record data if a recorder is provided
+            if self.data_recorder:
+                self.data_recorder.record_data("recently_watched_shows", history)
+
             # Process history entries
             results = []
             shows_seen = set()  # Track shows we've already added to avoid duplicates
@@ -569,6 +588,10 @@ class PlexClient:
 
             if not history:
                 return []
+
+            # Record data if a recorder is provided
+            if self.data_recorder:
+                self.data_recorder.record_data("recently_watched_movies", history)
 
             # Process history entries
             results = []

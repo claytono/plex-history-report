@@ -36,3 +36,4 @@ test_output/
 .bin/
 node_modules/
 benchmark-data/
+tests/fixtures/plex_raw_*_data.json
