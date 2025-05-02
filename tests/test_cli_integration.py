@@ -1,7 +1,7 @@
 """Integration tests for Plex History Report CLI.
 
 This module contains integration tests that verify the CLI works correctly
-by mocking the PlexClient to use our fixture data.
+by mocking the PlexClient to use our fixture data instead of calling a real Plex server.
 """
 
 import io
@@ -46,7 +46,6 @@ class MockPlexClient:
     def _load_fixtures(self):
         """Load test fixtures from JSON files."""
         import json
-        from datetime import datetime
 
         # Load TV show data
         with self.tv_fixtures_path.open("r", encoding="utf-8") as f:
@@ -118,6 +117,8 @@ class MockPlexClient:
         Returns:
             List of show statistics from our fixture data.
         """
+        # Use username to avoid unused argument lint error
+        _ = username
         # Record the call if a recorder is present
         if self.data_recorder:
             self.data_recorder.record_data("all_shows", self.all_shows)
@@ -131,11 +132,7 @@ class MockPlexClient:
 
         # Filter for partially watched shows if needed
         if partially_watched_only:
-            result = [
-                show
-                for show in result
-                if 0 < show.get("completion_percentage", 0) < 100
-            ]
+            result = [show for show in result if 0 < show.get("completion_percentage", 0) < 100]
 
         # Apply sorting
         if sort_by == "title":
@@ -167,6 +164,8 @@ class MockPlexClient:
         Returns:
             List of movie statistics from our fixture data.
         """
+        # Use username to avoid unused argument lint error
+        _ = username
         # Record the call if a recorder is present
         if self.data_recorder:
             self.data_recorder.record_data("all_movies", self.all_movies)
@@ -180,11 +179,7 @@ class MockPlexClient:
 
         # Filter for partially watched movies if needed
         if partially_watched_only:
-            result = [
-                movie
-                for movie in result
-                if 0 < movie.get("completion_percentage", 0) < 100
-            ]
+            result = [movie for movie in result if 0 < movie.get("completion_percentage", 0) < 100]
 
         # Apply sorting
         if sort_by == "title":
@@ -212,6 +207,8 @@ class MockPlexClient:
         Returns:
             List of recently watched shows from our fixture data.
         """
+        # Use username to avoid unused argument lint error
+        _ = username
         # Record the call if a recorder is present
         if self.data_recorder:
             self.data_recorder.record_data("recently_watched_shows", self.recently_watched_shows)
@@ -229,6 +226,8 @@ class MockPlexClient:
         Returns:
             List of recently watched movies from our fixture data.
         """
+        # Use username to avoid unused argument lint error
+        _ = username
         # Record the call if a recorder is present
         if self.data_recorder:
             self.data_recorder.record_data("recently_watched_movies", self.recently_watched_movies)
@@ -260,9 +259,7 @@ class TestCLIIntegration(unittest.TestCase):
         console = Console(file=buffer, width=100, highlight=False)
 
         # Create a minimal config for testing
-        mock_config = {
-            "plex": {"base_url": "http://localhost:32400", "token": "test_token"}
-        }
+        mock_config = {"plex": {"base_url": "http://localhost:32400", "token": "test_token"}}
 
         # Create args for the CLI
         class MockArgs:
@@ -308,9 +305,7 @@ class TestCLIIntegration(unittest.TestCase):
         console = Console(file=buffer, width=100, highlight=False)
 
         # Create a minimal config for testing
-        mock_config = {
-            "plex": {"base_url": "http://localhost:32400", "token": "test_token"}
-        }
+        mock_config = {"plex": {"base_url": "http://localhost:32400", "token": "test_token"}}
 
         # Create args for the CLI
         class MockArgs:
@@ -356,9 +351,7 @@ class TestCLIIntegration(unittest.TestCase):
         console = Console(file=buffer, width=100, highlight=False)
 
         # Create a minimal config for testing
-        mock_config = {
-            "plex": {"base_url": "http://localhost:32400", "token": "test_token"}
-        }
+        mock_config = {"plex": {"base_url": "http://localhost:32400", "token": "test_token"}}
 
         # Create args for the CLI
         class MockArgs:
