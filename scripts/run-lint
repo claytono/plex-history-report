@@ -5,7 +5,7 @@
 set -e
 
 # Ensure uv is available
-if ! command -v uv &> /dev/null; then
+if ! command -v uv &>/dev/null; then
     echo "Error: uv is not installed or not in PATH"
     echo "Visit https://github.com/astral-sh/uv for installation instructions"
     exit 1

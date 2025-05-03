@@ -4,16 +4,16 @@
 # This passes all arguments to the plex_history_report.cli module
 
 # Check if UV is installed
-if ! command -v uv &> /dev/null; then
+if ! command -v uv &>/dev/null; then
     echo "UV is not installed. Please install it first."
     echo "Visit https://github.com/astral-sh/uv for installation instructions."
     exit 1
 fi
 
 # Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # Get the project root directory (parent of bin)
-PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Change to the project directory
 cd "$PROJECT_ROOT" || exit 1

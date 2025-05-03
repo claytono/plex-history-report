@@ -15,7 +15,7 @@ fi
 
 # Set up editorconfig-checker binary directory
 BIN_DIR="$(pwd)/.bin"
-EC_VERSION="3.2.1"  # Current latest version
+EC_VERSION="3.2.1" # Current latest version
 EC_BINARY="$BIN_DIR/ec"
 
 # Create the .bin directory if it doesn't exist

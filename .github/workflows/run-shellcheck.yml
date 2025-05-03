@@ -1,4 +1,4 @@
-name: Shell Linting
+name: Shell Script Checks
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  shellcheck:
+  shell-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +27,6 @@ jobs:
         run: |
           uv venv
 
-      - name: Run shellcheck
+      - name: Run shell script checks
         run: |
-          ./scripts/run-shellcheck
+          ./scripts/run-shell-checks --check

@@ -1,0 +1,110 @@
+#!/bin/bash
+# Script to format shell scripts using shfmt (mvdan/sh)
+
+# Exit on any error
+set -e
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" &> /dev/null
+}
+
+# Determine platform and architecture for download
+PLATFORM=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+if [[ "$ARCH" == "x86_64" ]]; then
+    ARCH="amd64"
+elif [[ "$ARCH" == "arm64" ]]; then
+    ARCH="arm64"
+fi
+
+# Set up shfmt binary directory
+BIN_DIR="$(pwd)/.bin"
+SHFMT_VERSION="3.7.0"  # Current latest version as of now
+SHFMT_BINARY="$BIN_DIR/shfmt"
+
+# Function to install shfmt if not present
+ensure_shfmt() {
+    # Create the .bin directory if it doesn't exist
+    mkdir -p "$BIN_DIR"
+
+    # Check if shfmt is already available in PATH
+    if command_exists shfmt && ! [[ -f "$SHFMT_BINARY" ]]; then
+        echo "Using system-installed shfmt"
+        return 0
+    fi
+
+    # Check if our downloaded version exists
+    if [ -f "$SHFMT_BINARY" ]; then
+        return 0
+    fi
+
+    echo "shfmt not found. Downloading version $SHFMT_VERSION..."
+
+    # Set the download URL based on platform
+    DOWNLOAD_URL="https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_${PLATFORM}_${ARCH}"
+    echo "Download URL: $DOWNLOAD_URL"
+
+    # Download the binary directly (no extraction needed for shfmt)
+    echo "Downloading..."
+    if ! curl -L -s "$DOWNLOAD_URL" -o "$SHFMT_BINARY"; then
+        echo "Failed to download shfmt from $DOWNLOAD_URL"
+        exit 1
+    fi
+
+    chmod +x "$SHFMT_BINARY"
+    echo "Successfully installed shfmt to $SHFMT_BINARY"
+}
+
+# Process arguments to look for --check flag
+CHECK_MODE=false
+SHFMT_ARGS=()
+for arg in "$@"; do
+    if [[ "$arg" == "--check" ]]; then
+        CHECK_MODE=true
+    else
+        SHFMT_ARGS+=("$arg")
+    fi
+done
+
+# Default paths to check if no file arguments were provided
+if [ ${#SHFMT_ARGS[@]} -eq 0 ]; then
+    # Use a more portable approach to find shell scripts
+    while IFS= read -r file; do
+        # Check if file is executable
+        if [ -x "$file" ] && [ -f "$file" ]; then
+            # Only include files with bash or sh shebang
+            if head -n 1 "$file" | grep -q "^#!/.*\(bash\|sh\)"; then
+                SHFMT_ARGS+=("$file")
+            fi
+        fi
+    done < <(find bin scripts -type f -not -path "*/\.*")
+fi
+
+# Ensure shfmt is available
+ensure_shfmt
+
+# Use our downloaded binary or the system one
+SHFMT_CMD="shfmt"
+if [ -f "$SHFMT_BINARY" ]; then
+    SHFMT_CMD="$SHFMT_BINARY"
+fi
+
+# Run shfmt with preferred options
+# -l: list files whose formatting differs
+# -w: write result to file instead of stdout
+# -i 4: indent with 4 spaces (per project EditorConfig rules)
+# -bn: binary ops like && and | may start a line
+# -ci: switch cases are indented
+if [ "$CHECK_MODE" = true ]; then
+    echo "Checking shell script formatting on: ${SHFMT_ARGS[*]}"
+    if ! "$SHFMT_CMD" -l -i 4 -bn -ci "${SHFMT_ARGS[@]}"; then
+        echo -e "\nSome shell scripts need formatting. Run 'scripts/run-shfmt' to fix."
+        exit 1
+    fi
+else
+    echo "Formatting shell scripts: ${SHFMT_ARGS[*]}"
+    "$SHFMT_CMD" -w -i 4 -bn -ci "${SHFMT_ARGS[@]}"
+fi
+
+echo -e "\nShell script formatting completed successfully."

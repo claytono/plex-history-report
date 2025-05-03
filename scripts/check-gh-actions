@@ -36,36 +36,36 @@ EXCLUDE_PATTERNS=("${DEFAULT_EXCLUSIONS[@]}")
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -b|--branch)
+        -b | --branch)
             BRANCH="$2"
             PR_ARG="$BRANCH"
             shift 2
             ;;
-        -n|--no-wait)
+        -n | --no-wait)
             WAIT_FOR_COMPLETION=false
             shift
             ;;
-        -f|--fail-fast)
+        -f | --fail-fast)
             FAIL_FAST="--fail-fast"
             shift
             ;;
-        -t|--timeout)
+        -t | --timeout)
             TIMEOUT="$2"
             shift 2
             ;;
-        -i|--interval)
+        -i | --interval)
             WATCH_INTERVAL="$2"
             shift 2
             ;;
-        -e|--exclude)
+        -e | --exclude)
             EXCLUDE_PATTERNS+=("$2")
             shift 2
             ;;
-        -a|--all)
+        -a | --all)
             EXCLUDE_PATTERNS=()
             shift
             ;;
-        -h|--help)
+        -h | --help)
             usage
             ;;
         *)
@@ -76,14 +76,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Check if gh CLI is installed
-if ! command -v gh &> /dev/null; then
+if ! command -v gh &>/dev/null; then
     echo "Error: GitHub CLI (gh) is not installed."
     echo "Please install it from https://cli.github.com/"
     exit 1
 fi
 
 # Check if authenticated with GitHub
-if ! gh auth status &> /dev/null; then
+if ! gh auth status &>/dev/null; then
     echo "Error: Not authenticated with GitHub."
     echo "Please run 'gh auth login' to authenticate."
     exit 1
@@ -106,10 +106,10 @@ should_exclude_check() {
     local check_name="$1"
     for pattern in "${EXCLUDE_PATTERNS[@]}"; do
         if [[ "$check_name" == *"$pattern"* ]]; then
-            return 0  # True, should exclude
+            return 0 # True, should exclude
         fi
     done
-    return 1  # False, should not exclude
+    return 1 # False, should not exclude
 }
 
 # Function to check for failed runs and get their logs
@@ -133,7 +133,7 @@ get_failed_checks_logs() {
     local total_checks
     total_checks=$(echo "$checks_json" | jq '. | length')
 
-    for ((i=0; i<total_checks; i++)); do
+    for ((i = 0; i < total_checks; i++)); do
         local check_json
         check_json=$(echo "$checks_json" | jq ".[$i]")
 
