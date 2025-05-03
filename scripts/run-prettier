@@ -5,7 +5,7 @@
 set -e
 
 # Check if npx is available
-if ! command -v npx &> /dev/null; then
+if ! command -v npx &>/dev/null; then
     echo "Error: npx is not installed or not in PATH"
     echo "Install Node.js (which includes npm and npx) to continue"
     exit 1

@@ -17,13 +17,13 @@ echo -e "\n[1/7] Formatting text files with Prettier"
 echo -e "\n[2/7] Formatting Python code with Black"
 "$SCRIPT_DIR/run-black"
 
-# Run markdown lint
-echo -e "\n[3/7] Running Markdown lint"
-"$SCRIPT_DIR/run-markdown-lint"
+# Run shell script checks (shfmt and shellcheck)
+echo -e "\n[3/7] Running shell script checks (shfmt and shellcheck)"
+"$SCRIPT_DIR/run-shell-checks"
 
-# Run shell script lint
-echo -e "\n[4/7] Running ShellCheck"
-"$SCRIPT_DIR/run-shellcheck"
+# Run markdown lint
+echo -e "\n[4/7] Running Markdown lint"
+"$SCRIPT_DIR/run-markdown-lint"
 
 # Run Python linter (check only)
 echo -e "\n[5/7] Running Python linter"

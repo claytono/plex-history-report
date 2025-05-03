@@ -13,8 +13,8 @@ run_test() {
     local output_file="$3"
 
     echo "Running test: $description"
-    echo "$command" > "$OUTPUT_DIR/$output_file"
-    eval "$command" >> "$OUTPUT_DIR/$output_file" 2>&1
+    echo "$command" >"$OUTPUT_DIR/$output_file"
+    eval "$command" >>"$OUTPUT_DIR/$output_file" 2>&1
 }
 
 # Basic functionality tests
