@@ -1,6 +1,5 @@
 """Tests for the config module."""
 
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,7 +9,6 @@ import yaml
 
 from plex_history_report.config import (
     ConfigError,
-    DEFAULT_CONFIG_PATH,
     create_default_config,
     load_config,
 )
@@ -240,7 +238,7 @@ class TestConfig(unittest.TestCase):
         """Test creating a default configuration at the default path."""
         # Mock DEFAULT_CONFIG_PATH to point to our temp file
         temp_default_config = self.temp_path / "default_config.yaml"
-        
+
         with patch("plex_history_report.config.DEFAULT_CONFIG_PATH", temp_default_config):
             # Create a default configuration without specifying a path
             result_path = create_default_config()
@@ -266,13 +264,13 @@ class TestConfig(unittest.TestCase):
         # Create a nested directory
         nested_dir = self.temp_path / "nested" / "dirs"
         nested_dir.mkdir(parents=True)
-        
+
         # Define a path inside the nested directory
         config_path = nested_dir / "config.yaml"
-        
+
         # Create a default configuration
         create_default_config(config_path)
-        
+
         # Verify the file was created
         self.assertTrue(config_path.exists())
 
@@ -281,10 +279,10 @@ class TestConfig(unittest.TestCase):
         # Define a path in a non-existing directory
         new_dir = self.temp_path / "new_dir"
         config_path = new_dir / "config.yaml"
-        
+
         # Create a default configuration
         create_default_config(config_path)
-        
+
         # Verify the directory and file were created
         self.assertTrue(new_dir.exists())
         self.assertTrue(config_path.exists())
