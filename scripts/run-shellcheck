@@ -11,27 +11,34 @@ if ! command -v uv &>/dev/null; then
     exit 1
 fi
 
-# Default paths to check if no arguments provided
-if [ $# -eq 0 ]; then
+# Process arguments to look for --check flag
+CHECK_MODE=false
+SHELL_ARGS=()
+for arg in "$@"; do
+    if [[ "$arg" == "--check" ]]; then
+        CHECK_MODE=true
+    else
+        SHELL_ARGS+=("$arg")
+    fi
+done
+
+# Default paths to check if no file arguments were provided
+if [ ${#SHELL_ARGS[@]} -eq 0 ]; then
     # Use a more portable approach to find shell scripts
-    ARGS=()
     while IFS= read -r file; do
         # Check if file is executable
         if [ -x "$file" ] && [ -f "$file" ]; then
             # Only include files with bash shebang
             if head -n 1 "$file" | grep -q "^#!/.*\(bash\|sh\)"; then
-                ARGS+=("$file")
+                SHELL_ARGS+=("$file")
             fi
         fi
     done < <(find bin scripts -type f -not -path "*/\.*")
-else
-    # Use array for proper argument handling
-    ARGS=("$@")
 fi
 
 # Run ShellCheck with uvx
-echo "Running shellcheck on: ${ARGS[*]}"
-if ! uvx --from=shellcheck-py shellcheck "${ARGS[@]}"; then
+echo "Running shellcheck on: ${SHELL_ARGS[*]}"
+if ! uvx --from=shellcheck-py shellcheck "${SHELL_ARGS[@]}"; then
     echo -e "\nShell script linting found issues."
     exit 1
 fi
