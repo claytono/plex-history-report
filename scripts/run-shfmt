@@ -56,32 +56,30 @@ ensure_shfmt() {
     echo "Successfully installed shfmt to $SHFMT_BINARY"
 }
 
-# Default paths to check if no arguments provided
-if [ $# -eq 0 ]; then
+# Process arguments to look for --check flag
+CHECK_MODE=false
+SHFMT_ARGS=()
+for arg in "$@"; do
+    if [[ "$arg" == "--check" ]]; then
+        CHECK_MODE=true
+    else
+        SHFMT_ARGS+=("$arg")
+    fi
+done
+
+# Default paths to check if no file arguments were provided
+if [ ${#SHFMT_ARGS[@]} -eq 0 ]; then
     # Use a more portable approach to find shell scripts
-    ARGS=()
     while IFS= read -r file; do
         # Check if file is executable
         if [ -x "$file" ] && [ -f "$file" ]; then
             # Only include files with bash or sh shebang
             if head -n 1 "$file" | grep -q "^#!/.*\(bash\|sh\)"; then
-                ARGS+=("$file")
+                SHFMT_ARGS+=("$file")
             fi
         fi
     done < <(find bin scripts -type f -not -path "*/\.*")
-else
-    # Use array for proper argument handling
-    ARGS=("$@")
 fi
-
-# Check if we're in check mode (--check)
-CHECK_MODE=false
-for arg in "$@"; do
-    if [ "$arg" = "--check" ]; then
-        CHECK_MODE=true
-        break
-    fi
-done
 
 # Ensure shfmt is available
 ensure_shfmt
@@ -99,14 +97,14 @@ fi
 # -bn: binary ops like && and | may start a line
 # -ci: switch cases are indented
 if [ "$CHECK_MODE" = true ]; then
-    echo "Checking shell script formatting on: ${ARGS[*]}"
-    if ! "$SHFMT_CMD" -l -i 4 -bn -ci "${ARGS[@]}"; then
+    echo "Checking shell script formatting on: ${SHFMT_ARGS[*]}"
+    if ! "$SHFMT_CMD" -l -i 4 -bn -ci "${SHFMT_ARGS[@]}"; then
         echo -e "\nSome shell scripts need formatting. Run 'scripts/run-shfmt' to fix."
         exit 1
     fi
 else
-    echo "Formatting shell scripts: ${ARGS[*]}"
-    "$SHFMT_CMD" -w -i 4 -bn -ci "${ARGS[@]}"
+    echo "Formatting shell scripts: ${SHFMT_ARGS[*]}"
+    "$SHFMT_CMD" -w -i 4 -bn -ci "${SHFMT_ARGS[@]}"
 fi
 
 echo -e "\nShell script formatting completed successfully."
