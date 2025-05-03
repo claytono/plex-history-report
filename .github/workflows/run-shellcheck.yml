@@ -27,10 +27,6 @@ jobs:
         run: |
           uv venv
 
-      - name: Run shfmt (formatting)
+      - name: Run shell script checks
         run: |
-          ./scripts/run-shfmt --check
-
-      - name: Run shellcheck (linting)
-        run: |
-          ./scripts/run-shellcheck
+          ./scripts/run-shell-checks --check
