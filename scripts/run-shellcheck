@@ -12,12 +12,11 @@ if ! command -v uv &>/dev/null; then
 fi
 
 # Process arguments to look for --check flag
-CHECK_MODE=false
+# (shellcheck doesn't have a "check-only" mode like shfmt,
+#  but we still filter it out to prevent errors)
 SHELL_ARGS=()
 for arg in "$@"; do
-    if [[ "$arg" == "--check" ]]; then
-        CHECK_MODE=true
-    else
+    if [[ "$arg" != "--check" ]]; then
         SHELL_ARGS+=("$arg")
     fi
 done
