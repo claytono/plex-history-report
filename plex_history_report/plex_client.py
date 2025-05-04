@@ -156,11 +156,26 @@ class PlexClient:
         elif sort_by == "completion_percentage":
             show_stats.sort(key=lambda x: x["completion_percentage"], reverse=True)
         elif sort_by == "last_watched":
+            # Debug the last_watched values to understand what's happening
+            for show in show_stats:
+                logger.debug(f"Show '{show['title']}' has last_watched: {show['last_watched']}")
+
             # Sort by last_watched, placing None values at the end
-            show_stats.sort(
-                key=lambda x: datetime.min if x["last_watched"] is None else x["last_watched"],
-                reverse=True,
-            )
+            # Use a dummy date in the past for entries with None
+            def last_watched_key(item):
+                if item["last_watched"] is None:
+                    return datetime(1900, 1, 1)  # Very old date for None values
+                return item["last_watched"]
+
+            # First sort by title for stable sorting of equal dates
+            show_stats.sort(key=lambda x: x["title"].lower())
+            # Then sort by last_watched date in descending order (newest first)
+            show_stats.sort(key=last_watched_key, reverse=True)
+
+            # Debug the sorted order
+            logger.debug("Shows sorted by last_watched:")
+            for show in show_stats:
+                logger.debug(f"  {show['title']}: {show['last_watched']}")
         elif sort_by == "year":
             # Sort by year, placing None values at the end
             show_stats.sort(key=lambda x: 0 if x["year"] is None else x["year"], reverse=True)
@@ -193,58 +208,72 @@ class PlexClient:
             total_watch_time = 0
             last_watched_date = None
 
+            # Fetch recent history once for the show instead of per episode
+            show_history = None
+            if username:
+                try:
+                    # Get the most recent 50 history entries for the show
+                    # This is more efficient than getting history for each episode
+                    show_history = show.history(username=username, maxresults=50)
+                except Exception as e:
+                    logger.debug(f"Error getting show history: {e}")
+
             # Process each episode
             for episode in episodes:
                 # Check if this episode has been watched by the specified user
                 watched = False
 
                 if username:
-                    # Get watch history for specific user
-                    try:
-                        # Get history for this user
-                        history = episode.history(username=username)
-                        watched = bool(history)
-
-                        # Update last watched date if needed
-                        if watched and history:
-                            for entry in history:
-                                watch_date = entry.viewedAt
-                                if watch_date and (
-                                    last_watched_date is None or watch_date > last_watched_date
+                    # Use viewCount property or isWatched first (most efficient)
+                    if hasattr(episode, "viewCount") and episode.viewCount is not None:
+                        watched = episode.viewCount > 0
+                    elif hasattr(episode, "isWatched"):
+                        watched = episode.isWatched
+                    else:
+                        # Last resort: check episode in show history
+                        if show_history:
+                            for entry in show_history:
+                                if (
+                                    hasattr(entry, "grandparentRatingKey")
+                                    and hasattr(episode, "grandparentRatingKey")
+                                    and hasattr(entry, "index")
+                                    and hasattr(episode, "index")
+                                    and entry.grandparentRatingKey == episode.grandparentRatingKey
+                                    and entry.index == episode.index
                                 ):
-                                    last_watched_date = watch_date
+                                    watched = True
+                                    # Update last watched date from history if needed
+                                    if entry.viewedAt and (
+                                        last_watched_date is None
+                                        or entry.viewedAt > last_watched_date
+                                    ):
+                                        last_watched_date = entry.viewedAt
+                                    break
 
-                                # Add watch time to total
-                                if episode.duration:
-                                    total_watch_time += (
-                                        episode.duration / 60000
-                                    )  # Convert ms to minutes
-                    except Exception as e:
-                        logger.debug(f"Error getting history for episode: {e}")
+                    # Add watch time to total when episode is watched
+                    if watched and episode.duration:
+                        total_watch_time += episode.duration / 60000  # Convert ms to minutes
                 else:
                     # Check if episode is marked as watched globally
-                    watched = episode.isWatched
+                    if hasattr(episode, "viewCount") and episode.viewCount is not None:
+                        watched = episode.viewCount > 0
+                    else:
+                        watched = episode.isWatched if hasattr(episode, "isWatched") else False
 
                     # Add watch time to total when episode is marked as watched
                     if watched and episode.duration:
                         total_watch_time += episode.duration / 60000  # Convert ms to minutes
 
-                    # Get history for all users
-                    try:
-                        # Get all history
-                        history = episode.history(minviews=1)
-                        if history:
-                            for entry in history:
-                                watch_date = entry.viewedAt
-                                if watch_date and (
-                                    last_watched_date is None or watch_date > last_watched_date
-                                ):
-                                    last_watched_date = watch_date
-                    except Exception as e:
-                        logger.debug(f"Error getting history for episode: {e}")
-
                 if watched:
                     watched_episodes += 1
+
+            # If we didn't find a last watched date from episode history, try to get it from show history
+            if last_watched_date is None and show_history:
+                for entry in show_history:
+                    if entry.viewedAt and (
+                        last_watched_date is None or entry.viewedAt > last_watched_date
+                    ):
+                        last_watched_date = entry.viewedAt
 
             # Calculate completion percentage
             completion_percentage = 0
@@ -376,73 +405,75 @@ class PlexClient:
         try:
             logger.debug(f"Getting statistics for movie: {movie.title}")
 
-            # Get watch history
+            # Initialize statistics
             watch_count = 0
             last_watched_date = None
-            view_offset = 0  # Track view offset to determine if partially watched
+            view_offset = 0
             watched = False
 
             # Convert duration from milliseconds to minutes
             duration_minutes = movie.duration / 60000 if movie.duration else 0
 
-            if username:
-                # Get history for specific user
-                try:
-                    history = movie.history(username=username)
-                    watch_count = len(history)
-                    watched = bool(history)
+            # Get view offset if available (for partial watch tracking)
+            if hasattr(movie, "viewOffset"):
+                view_offset = movie.viewOffset
+                if view_offset > 0:
+                    logger.debug(
+                        f"Movie '{movie.title}' has viewOffset: {view_offset} out of {movie.duration} "
+                        f"({(view_offset / movie.duration * 100):.1f}% watched)"
+                    )
 
-                    # Get last watched date
-                    if history:
-                        for entry in history:
-                            if entry.viewedAt and (
-                                last_watched_date is None or entry.viewedAt > last_watched_date
-                            ):
-                                last_watched_date = entry.viewedAt
-                except Exception as e:
-                    logger.debug(f"Error getting history for movie '{movie.title}': {e}")
-
-                # Check if movie is partially watched
-                try:
-                    # Try to get view offset for this user
-                    if hasattr(movie, "viewOffset"):
-                        view_offset = movie.viewOffset
-                        logger.debug(
-                            f"Movie '{movie.title}' has viewOffset: {view_offset} out of {movie.duration} ({(view_offset / movie.duration * 100):.1f}% watched)"
-                        )
-                except Exception as e:
-                    logger.debug(f"Error getting viewOffset for movie '{movie.title}': {e}")
+            # Most efficient way: first check viewCount and isWatched properties
+            if hasattr(movie, "viewCount") and movie.viewCount is not None:
+                watch_count = movie.viewCount
+                watched = watch_count > 0
             else:
-                # Check if movie is marked as watched globally
-                watched = movie.isWatched
+                watched = movie.isWatched if hasattr(movie, "isWatched") else False
+                # If it's marked as watched but we don't have a count, set to at least 1
+                if watched:
+                    watch_count = 1
 
-                # Get history for all users
-                try:
-                    history = movie.history(minviews=1)
-                    watch_count = len(history)
+            # Always attempt to get last watched date for watched movies
+            # This is needed even if no specific username is provided
+            if watched:
+                if username:
+                    # Minimal history retrieval - just enough for last watched date
+                    try:
+                        # Try with maxresults parameter first, but handle case where it's not supported
+                        try:
+                            history = movie.history(username=username, maxresults=5)
+                        except TypeError:
+                            # Fall back to calling without maxresults for test compatibility
+                            history = movie.history(username=username)
 
-                    # Get last watched date across all users
-                    if history:
-                        for entry in history:
-                            if entry.viewedAt and (
-                                last_watched_date is None or entry.viewedAt > last_watched_date
-                            ):
-                                last_watched_date = entry.viewedAt
-                except Exception as e:
-                    logger.debug(f"Error getting history for movie '{movie.title}': {e}")
+                        if history:
+                            for entry in history:
+                                if entry.viewedAt and (
+                                    last_watched_date is None or entry.viewedAt > last_watched_date
+                                ):
+                                    last_watched_date = entry.viewedAt
+                    except Exception as e:
+                        logger.debug(f"Error getting history for last watched date: {e}")
+                else:
+                    # If no username provided, get global watch history
+                    try:
+                        # Try with maxresults parameter first, but handle case where it's not supported
+                        try:
+                            history = movie.history(maxresults=5)
+                        except TypeError:
+                            # Fall back to calling without maxresults for test compatibility
+                            history = movie.history()
 
-                # Check if movie is partially watched
-                try:
-                    # Try to get view offset
-                    if hasattr(movie, "viewOffset"):
-                        view_offset = movie.viewOffset
-                        logger.debug(
-                            f"Movie '{movie.title}' has viewOffset: {view_offset} out of {movie.duration} ({(view_offset / movie.duration * 100):.1f}% watched)"
-                        )
-                except Exception as e:
-                    logger.debug(f"Error getting viewOffset for movie '{movie.title}': {e}")
+                        if history:
+                            for entry in history:
+                                if entry.viewedAt and (
+                                    last_watched_date is None or entry.viewedAt > last_watched_date
+                                ):
+                                    last_watched_date = entry.viewedAt
+                    except Exception as e:
+                        logger.debug(f"Error getting global history for last watched date: {e}")
 
-            # Calculate completion percentage if partially watched
+            # Calculate completion percentage
             completion_percentage = 0
             if view_offset > 0 and movie.duration:
                 completion_percentage = (view_offset / movie.duration) * 100
@@ -607,15 +638,38 @@ class PlexClient:
                     if entry.key in movies_seen:
                         continue
 
+                    # Make sure we have valid duration data
+                    duration = 0
+                    if hasattr(entry, "duration") and entry.duration:
+                        duration = entry.duration / 60000  # Convert ms to minutes
+
+                    # Check if we have watch history data
+                    watch_count = 0
+                    try:
+                        # Use viewCount property if available (much more efficient)
+                        if hasattr(entry, "viewCount") and entry.viewCount is not None:
+                            watch_count = entry.viewCount
+                        else:
+                            # Fall back to history if viewCount not available
+                            movie_history = entry.history()
+                            watch_count = len(movie_history)
+                    except Exception as e:
+                        logger.debug(
+                            f"Error getting detailed history for movie '{entry.title}': {e}"
+                        )
+                        # If we can't get history, at least we know it was watched once
+                        watch_count = 1
+
                     # Add to results and mark as seen
                     results.append(
                         {
                             "title": entry.title,
                             "year": entry.year,
-                            "duration_minutes": entry.duration / 60000 if entry.duration else 0,
+                            "duration_minutes": duration,
                             "viewed_at": entry.viewedAt,
                             "user": entry.username,
                             "rating": entry.rating,
+                            "watch_count": watch_count,
                         }
                     )
                     movies_seen.add(entry.key)

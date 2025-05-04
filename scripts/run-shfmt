@@ -6,7 +6,7 @@ set -e
 
 # Function to check if a command exists
 command_exists() {
-    command -v "$1" &> /dev/null
+    command -v "$1" &>/dev/null
 }
 
 # Determine platform and architecture for download
@@ -20,7 +20,7 @@ fi
 
 # Set up shfmt binary directory
 BIN_DIR="$(pwd)/.bin"
-SHFMT_VERSION="3.7.0"  # Current latest version as of now
+SHFMT_VERSION="3.7.0" # Current latest version as of now
 SHFMT_BINARY="$BIN_DIR/shfmt"
 
 # Function to install shfmt if not present
