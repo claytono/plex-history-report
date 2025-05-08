@@ -104,11 +104,11 @@ class TestPlexClient(unittest.TestCase):
         # Create a mock object that's not a string but has a username attribute
         mock_user_obj = MagicMock()
         mock_user_obj.username = "object_user"
-        
+
         # Create another object with no username attribute
         mock_invalid_obj = MagicMock()
         delattr(mock_invalid_obj, "username")
-        
+
         # Create a mock account where users returns non-string objects
         mock_account = MagicMock()
         mock_account.users.return_value = [mock_user_obj, mock_invalid_obj]
