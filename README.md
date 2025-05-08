@@ -27,7 +27,7 @@ You can run the tool directly from GitHub without installing it using `uvx`:
 
 ```bash
 # Run directly from GitHub with uvx (no installation needed)
-uvx -m plex_history_report github:claytono/plex-history-report --help
+uvx github:claytono/plex-history-report --help
 ```
 
 This will automatically download the repository and install all required dependencies. You'll still
@@ -60,7 +60,7 @@ need to configure your Plex server details - see the Configuration section below
 
    ```bash
    # Run with uvx without installing
-   uvx -m plex_history_report --help
+   uvx plex_history_report --help
 
    # Or use the provided wrapper script
    ./bin/plex-history-report --help
@@ -92,10 +92,10 @@ plex-history-report --tv
 ./bin/plex-history-report --tv
 
 # Using uvx from local repository
-uvx -m plex_history_report --tv
+uvx plex_history_report --tv
 
 # Using uvx directly from GitHub
-uvx -m plex_history_report github:claytono/plex-history-report --tv
+uvx github:claytono/plex-history-report --tv
 ```
 
 ### Output Formats
