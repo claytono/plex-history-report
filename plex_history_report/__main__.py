@@ -1,9 +1,10 @@
 """Main entry point for direct module execution.
 
-This file enables running the module directly with: python -m plex_history_report
-or with uvx: uvx -m plex_history_report
+This file enables running the module directly with various methods:
+- python -m plex_history_report
+- uvx git+https://github.com/claytono/plex-history-report
 
-It's particularly useful for running the tool directly from GitHub with uvx.
+It allows the tool to be run directly without installation.
 """
 
 from .cli import main

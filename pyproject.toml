@@ -32,7 +32,7 @@ dev = [
 plex-history-report = "plex_history_report.cli:main"
 
 [tool.setuptools]
-packages = ["plex_history_report"]
+packages = ["plex_history_report", "plex_history_report.formatters"]
 
 [tool.black]
 line-length = 100
