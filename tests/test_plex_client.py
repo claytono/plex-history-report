@@ -99,6 +99,30 @@ class TestPlexClient(unittest.TestCase):
         # Should return empty list on general exception
         self.assertEqual(users, [])
 
+    def test_get_available_users_with_non_string_users(self):
+        """Test user retrieval with objects that aren't strings but have username attributes."""
+        # Create a mock object that's not a string but has a username attribute
+        mock_user_obj = MagicMock()
+        mock_user_obj.username = "object_user"
+        
+        # Create another object with no username attribute
+        mock_invalid_obj = MagicMock()
+        delattr(mock_invalid_obj, "username")
+        
+        # Create a mock account where users returns non-string objects
+        mock_account = MagicMock()
+        mock_account.users.return_value = [mock_user_obj, mock_invalid_obj]
+        self.mock_server.myPlexAccount.return_value = mock_account
+
+        # Create the client and test
+        client = PlexClient(self.base_url, self.token)
+        users = client.get_available_users()
+
+        # Should extract username from valid object and include with admin
+        self.assertEqual(len(users), 2)
+        self.assertIn("admin", users)
+        self.assertIn("object_user", users)
+
     def test_get_library_sections(self):
         """Test retrieving library sections."""
         # Create mock sections using our factory
