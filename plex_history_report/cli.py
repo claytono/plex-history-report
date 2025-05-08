@@ -55,9 +55,19 @@ def configure_parser() -> argparse.ArgumentParser:
     )
 
     # Create a mutually exclusive group for media type selection
-    media_group = parser.add_mutually_exclusive_group(required=True)
+    # Changed required to False to allow --list-users and --create-config to work without media flag
+    media_group = parser.add_mutually_exclusive_group(required=False)
     media_group.add_argument("--tv", action="store_true", help="Show TV show statistics")
     media_group.add_argument("--movies", action="store_true", help="Show movie statistics")
+
+    # Command line options that can be used without specifying a media type
+    utility_group = parser.add_argument_group("utility options")
+    utility_group.add_argument(
+        "--list-users", action="store_true", help="List available Plex users and exit"
+    )
+    utility_group.add_argument(
+        "--create-config", action="store_true", help="Create a default configuration file"
+    )
 
     parser.add_argument("--config", type=str, help="Path to configuration file")
 
@@ -75,10 +85,6 @@ def configure_parser() -> argparse.ArgumentParser:
         "--show-recent",
         action="store_true",
         help="Show recently watched items in addition to overall statistics",
-    )
-
-    parser.add_argument(
-        "--create-config", action="store_true", help="Create a default configuration file"
     )
 
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
@@ -112,10 +118,6 @@ def configure_parser() -> argparse.ArgumentParser:
         "--partially-watched-only",
         action="store_true",
         help="Show only partially watched items (not fully watched or unwatched)",
-    )
-
-    parser.add_argument(
-        "--list-users", action="store_true", help="List available Plex users and exit"
     )
 
     parser.add_argument(
@@ -237,6 +239,12 @@ def run(args: argparse.Namespace) -> int:
                     "No users found or cannot access user information with current token."
                 )
             return 0
+
+        # Require either --tv or --movies when not using utility commands
+        if not (args.tv or args.movies):
+            console.print("[bold red]Error:[/bold red] Either --tv or --movies must be specified.")
+            console.print("Run with --help for usage information.")
+            return 1
 
         # Determine media type
         media_type = "show" if args.tv else "movie"
