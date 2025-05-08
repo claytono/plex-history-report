@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from plex_history_report.config import (
-    DEFAULT_CONFIG_PATH,
+    CWD_CONFIG_PATH,
     ConfigError,
     create_default_config,
     load_config,
@@ -185,7 +185,8 @@ def run(args: argparse.Namespace) -> int:
 
     # Load or create configuration
     try:
-        config_path = Path(args.config) if args.config else DEFAULT_CONFIG_PATH
+        # Use specified config path or CWD for config creation/loading
+        config_path = Path(args.config) if args.config else CWD_CONFIG_PATH
 
         # Check if config file exists, create it if it doesn't
         if not config_path.exists() and not args.create_config:
@@ -198,7 +199,8 @@ def run(args: argparse.Namespace) -> int:
             )
             return 0
 
-        config = load_config(config_path)
+        # This will use the correct priority for loading if no path is specified
+        config = load_config(config_path if config_path.exists() else None)
     except ConfigError as e:
         console.print(f"[bold red]Configuration error:[/bold red] {e}")
         console.print("\nRun with --create-config to create a default configuration file.")
