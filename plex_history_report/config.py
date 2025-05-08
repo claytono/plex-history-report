@@ -13,7 +13,13 @@ logger = logging.getLogger(__name__)
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
-DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config.yaml"
+
+# Try current working directory first, then package directory
+CWD_CONFIG_PATH = Path.cwd() / "config.yaml"
+PKG_CONFIG_PATH = PROJECT_ROOT / "config.yaml"
+
+# Use current working directory path if it exists, otherwise use package path
+DEFAULT_CONFIG_PATH = CWD_CONFIG_PATH if CWD_CONFIG_PATH.exists() else PKG_CONFIG_PATH
 
 
 class ConfigError(Exception):
@@ -35,7 +41,13 @@ def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
         ConfigError: If the configuration file doesn't exist or is invalid.
     """
     if config_path is None:
-        config_path = DEFAULT_CONFIG_PATH
+        # Check current working directory first if not explicitly specified
+        if CWD_CONFIG_PATH.exists():
+            config_path = CWD_CONFIG_PATH
+            logger.debug(f"Using config file from current directory: {config_path}")
+        else:
+            config_path = PKG_CONFIG_PATH
+            logger.debug(f"Using config file from package directory: {config_path}")
 
     try:
         if not config_path.exists():
@@ -78,7 +90,9 @@ def create_default_config(config_path: Optional[Path] = None) -> Path:
         Path to the created configuration file.
     """
     if config_path is None:
-        config_path = DEFAULT_CONFIG_PATH
+        # Create in current working directory by default
+        config_path = CWD_CONFIG_PATH
+        logger.debug(f"Creating default config in current directory: {config_path}")
 
     # Ensure directory exists
     config_path.parent.mkdir(parents=True, exist_ok=True)
