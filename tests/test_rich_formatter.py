@@ -140,6 +140,21 @@ class TestRichFormatter(unittest.TestCase):
         self.assertIn("0m", result)  # 0 minutes for Test Show 2
         self.assertIn("30m", result)  # 30 minutes for Test Show 3
 
+    def test_format_show_statistics_contains_summary(self):
+        """Test that show statistics output includes summary information."""
+        result = self.formatter.format_show_statistics(self.show_data)
+
+        # Check that output contains the summary title
+        self.assertIn("TV Show Summary", result)
+
+        # Check that summary statistics are correct
+        self.assertIn("Total Shows: 3", result)
+        self.assertIn("Watched Shows: 2", result)  # Test Show 2 has 0 watched episodes
+        self.assertIn("Total Episodes: 35", result)  # 10 + 20 + 5 = 35
+        self.assertIn("Watched Episodes: 10", result)  # 5 + 0 + 5 = 10
+        self.assertIn("Overall Completion: 28.6%", result)  # 10/35 = 28.6%
+        self.assertIn("Total Watch Time: 3 hours, 0 minutes", result)  # 150 + 0 + 30 = 180 minutes
+
     def test_format_movie_statistics_empty(self):
         """Test formatting empty movie statistics."""
         result = self.formatter.format_movie_statistics([])
@@ -175,6 +190,26 @@ class TestRichFormatter(unittest.TestCase):
         self.assertIn("8.5", result)  # Test Movie 1 rating
         self.assertIn("-", result)  # No rating for Test Movie 2
         self.assertIn("9.2", result)  # Test Movie 3 rating
+
+    def test_format_movie_statistics_contains_summary(self):
+        """Test that movie statistics output includes summary information."""
+        result = self.formatter.format_movie_statistics(self.movie_data)
+
+        # Check that output contains the summary title
+        self.assertIn("Movie Summary", result)
+
+        # Check that summary statistics are correct
+        self.assertIn("Total Movies: 3", result)
+        self.assertIn("Watched Movies: 2", result)  # Test Movie 2 has watched=False
+        self.assertIn("Completion: 66.7%", result)  # 2/3 = 66.7%
+        self.assertIn("Total Watch Count: 5", result)  # 2 + 0 + 3 = 5
+        self.assertIn("Total Duration: 4 hours, 15 minutes", result)  # 120 + 90 + 45 = 255 minutes
+
+        # Check watched duration calculation (watched movies only)
+        # Test Movie 1: 120 minutes x 2 watches = 240 minutes
+        # Test Movie 3: 45 minutes x 3 watches = 135 minutes
+        # Total: 375 minutes = 6 hours 15 minutes
+        self.assertIn("Total Watch Time: 6 hours, 15 minutes", result)
 
     def test_format_recently_watched_shows_empty(self):
         """Test formatting empty recently watched shows."""
@@ -237,46 +272,6 @@ class TestRichFormatter(unittest.TestCase):
         # Check duration formatting
         self.assertIn("1h 50m", result)  # 110 minutes for Recent Movie 1
         self.assertIn("1h 35m", result)  # 95 minutes for Recent Movie 2
-
-    def test_format_show_summary(self):
-        """Test formatting show summary."""
-        result = self.formatter.format_summary(self.show_data, media_type="show")
-
-        # Check that output contains the summary title
-        self.assertIn("TV Show Summary", result)
-
-        # Check that summary statistics are correct
-        self.assertIn("Total Shows: 3", result)
-        self.assertIn("Watched Shows: 2", result)  # Test Show 2 has 0 watched episodes
-        self.assertIn("Total Episodes: 35", result)  # 10 + 20 + 5 = 35
-        self.assertIn("Watched Episodes: 10", result)  # 5 + 0 + 5 = 10
-        self.assertIn("Overall Completion: 28.6%", result)  # 10/35 = 28.6%
-        self.assertIn("Total Watch Time: 3 hours, 0 minutes", result)  # 150 + 0 + 30 = 180 minutes
-
-    def test_format_movie_summary(self):
-        """Test formatting movie summary."""
-        result = self.formatter.format_summary(self.movie_data, media_type="movie")
-
-        # Check that output contains the summary title
-        self.assertIn("Movie Summary", result)
-
-        # Check that summary statistics are correct
-        self.assertIn("Total Movies: 3", result)
-        self.assertIn("Watched Movies: 2", result)  # Test Movie 2 has watched=False
-        self.assertIn("Completion: 66.7%", result)  # 2/3 = 66.7%
-        self.assertIn("Total Watch Count: 5", result)  # 2 + 0 + 3 = 5
-        self.assertIn("Total Duration: 4 hours, 15 minutes", result)  # 120 + 90 + 45 = 255 minutes
-
-        # Check watched duration calculation (watched movies only)
-        # Test Movie 1: 120 minutes x 2 watches = 240 minutes
-        # Test Movie 3: 45 minutes x 3 watches = 135 minutes
-        # Total: 375 minutes = 6 hours 15 minutes
-        self.assertIn("Total Watch Time: 6 hours, 15 minutes", result)
-
-    def test_format_summary_empty(self):
-        """Test formatting empty summary."""
-        result = self.formatter.format_summary([], media_type="show")
-        self.assertEqual(result, "")
 
     def test_rich_console_output(self):
         """Test that rich console output works properly."""
