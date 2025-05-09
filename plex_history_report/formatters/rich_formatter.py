@@ -68,6 +68,17 @@ class RichFormatter(BaseFormatter):
                 watch_time,
             )
 
+        # Create a temporary string to capture just the table for width measurement
+        temp_io = io.StringIO()
+        temp_console = Console(file=temp_io, width=120)
+        temp_console.print(table)
+        table_output = temp_io.getvalue()
+
+        # Find the width of the table by finding the longest line in the rendered table
+        table_lines = table_output.split("\n")
+        table_width = max(len(line) for line in table_lines if line.strip())
+
+        # Now print the actual table
         console.print(table)
 
         # Add summary section directly in this method (moved from format_summary)
@@ -98,7 +109,7 @@ class RichFormatter(BaseFormatter):
                 f"Total Watch Time: {hours} hours, {minutes} minutes",
                 title="TV Show Summary",
                 border_style="green",
-                width=table.width or 80,  # Use table width or fallback to 80 if not available
+                width=table_width,  # Use the exact measured table width
             )
 
             console.print(summary)
@@ -159,6 +170,17 @@ class RichFormatter(BaseFormatter):
                 movie["title"], str(movie["watch_count"]), formatted_date, duration, rating
             )
 
+        # Create a temporary string to capture just the table for width measurement
+        temp_io = io.StringIO()
+        temp_console = Console(file=temp_io, width=120)
+        temp_console.print(table)
+        table_output = temp_io.getvalue()
+
+        # Find the width of the table by finding the longest line in the rendered table
+        table_lines = table_output.split("\n")
+        table_width = max(len(line) for line in table_lines if line.strip())
+
+        # Now print the actual table
         console.print(table)
 
         # Add summary section directly in this method (moved from format_summary)
@@ -193,7 +215,7 @@ class RichFormatter(BaseFormatter):
                 f"Total Watch Time: {watched_hours} hours, {watched_minutes} minutes",
                 title="Movie Summary",
                 border_style="green",
-                width=table.width or 80,  # Use table width or fallback to 80 if not available
+                width=table_width,  # Use the exact measured table width
             )
 
             console.print(summary)
