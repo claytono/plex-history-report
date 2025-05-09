@@ -21,6 +21,18 @@ hope you find it useful too.
 - **User Management**: Query available Plex users and filter statistics by specific users
 - **Recently Watched**: View recently watched media with detailed information
 
+## Quick Start with UVX
+
+You can run the tool directly from GitHub without installing it using `uvx`:
+
+```bash
+# Run directly from GitHub with uvx (no installation needed)
+uvx github:claytono/plex-history-report --help
+```
+
+This will automatically download the repository and install all required dependencies. You'll still
+need to configure your Plex server details - see the Configuration section below.
+
 ## Installation
 
 ### Prerequisites
@@ -44,6 +56,16 @@ hope you find it useful too.
    uv pip install -e .
    ```
 
+3. Alternatively, run directly from the cloned repository:
+
+   ```bash
+   # Run with uvx without installing
+   uvx plex_history_report --help
+
+   # Or use the provided wrapper script
+   ./bin/plex-history-report --help
+   ```
+
 ## Configuration
 
 Create a `config.yaml` file in the project directory with the following structure:
@@ -60,19 +82,20 @@ You can obtain your Plex token by following the instructions in the
 
 ## Usage
 
-The tool can be run directly using the included script:
+The tool can be run in several ways:
 
 ```bash
-# Basic usage for TV shows or movies
+# Using the installed command if you installed with uv pip install
+plex-history-report --tv
+
+# Using the wrapper script from cloned repository
 ./bin/plex-history-report --tv
-./bin/plex-history-report --movies
 
-# User-specific statistics
-./bin/plex-history-report --tv --user username
-./bin/plex-history-report --movies --user username
+# Using uvx from local repository
+uvx plex_history_report --tv
 
-# List available Plex users
-./bin/plex-history-report --list-users
+# Using uvx directly from GitHub
+uvx github:claytono/plex-history-report --tv
 ```
 
 ### Output Formats

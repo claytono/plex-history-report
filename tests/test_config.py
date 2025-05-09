@@ -83,7 +83,10 @@ class TestConfig(unittest.TestCase):
         }
         config_path = self.create_test_config(valid_config)
 
-        with patch("plex_history_report.config.DEFAULT_CONFIG_PATH", config_path):
+        # Need to mock both CWD_CONFIG_PATH and PKG_CONFIG_PATH to ensure our test works
+        with patch("plex_history_report.config.CWD_CONFIG_PATH", Path("/nonexistent/path")), patch(
+            "plex_history_report.config.PKG_CONFIG_PATH", config_path
+        ):
             # Load the configuration without specifying a path
             loaded_config = load_config()
 
@@ -239,7 +242,8 @@ class TestConfig(unittest.TestCase):
         # Mock DEFAULT_CONFIG_PATH to point to our temp file
         temp_default_config = self.temp_path / "default_config.yaml"
 
-        with patch("plex_history_report.config.DEFAULT_CONFIG_PATH", temp_default_config):
+        # Need to mock CWD_CONFIG_PATH to control where the config is created
+        with patch("plex_history_report.config.CWD_CONFIG_PATH", temp_default_config):
             # Create a default configuration without specifying a path
             result_path = create_default_config()
 
