@@ -69,6 +69,40 @@ class RichFormatter(BaseFormatter):
             )
 
         console.print(table)
+
+        # Add summary section directly in this method (moved from format_summary)
+        if stats:
+            # Calculate show summary statistics
+            total_shows = len(stats)
+            watched_shows = sum(1 for show in stats if show["watched_episodes"] > 0)
+            total_episodes = sum(show["total_episodes"] for show in stats)
+            watched_episodes = sum(show["watched_episodes"] for show in stats)
+            total_watch_time = sum(show["total_watch_time_minutes"] for show in stats)
+
+            # Format watch time
+            hours = int(total_watch_time // 60)
+            minutes = int(total_watch_time % 60)
+
+            # Calculate overall completion percentage, rounded to 1 decimal place
+            completion_percentage = (
+                (watched_episodes / total_episodes * 100) if total_episodes > 0 else 0
+            )
+
+            # Create a summary panel with width matching the table
+            summary = Panel(
+                f"Total Shows: {total_shows}\n"
+                f"Watched Shows: {watched_shows}\n"
+                f"Total Episodes: {total_episodes}\n"
+                f"Watched Episodes: {watched_episodes}\n"
+                f"Overall Completion: {completion_percentage:.1f}%\n"
+                f"Total Watch Time: {hours} hours, {minutes} minutes",
+                title="TV Show Summary",
+                border_style="green",
+                width=table.width or 80,  # Use table width or fallback to 80 if not available
+            )
+
+            console.print(summary)
+
         return string_io.getvalue()
 
     def format_movie_statistics(self, stats: List[Dict]) -> str:
@@ -126,6 +160,44 @@ class RichFormatter(BaseFormatter):
             )
 
         console.print(table)
+
+        # Add summary section directly in this method (moved from format_summary)
+        if stats:
+            # Calculate movie summary statistics
+            total_movies = len(stats)
+            watched_movies = sum(1 for movie in stats if movie["watched"])
+            watch_count = sum(movie["watch_count"] for movie in stats)
+            total_duration = sum(movie["duration_minutes"] for movie in stats)
+            watched_duration = sum(
+                movie["duration_minutes"] * movie["watch_count"]
+                for movie in stats
+                if movie["watched"]
+            )
+
+            # Format durations
+            total_hours = int(total_duration // 60)
+            total_minutes = int(total_duration % 60)
+            watched_hours = int(watched_duration // 60)
+            watched_minutes = int(watched_duration % 60)
+
+            # Calculate completion percentage, rounded to 1 decimal place
+            completion_percentage = (watched_movies / total_movies * 100) if total_movies > 0 else 0
+
+            # Create a summary panel with width matching the table
+            summary = Panel(
+                f"Total Movies: {total_movies}\n"
+                f"Watched Movies: {watched_movies}\n"
+                f"Completion: {completion_percentage:.1f}%\n"
+                f"Total Watch Count: {watch_count}\n"
+                f"Total Duration: {total_hours} hours, {total_minutes} minutes\n"
+                f"Total Watch Time: {watched_hours} hours, {watched_minutes} minutes",
+                title="Movie Summary",
+                border_style="green",
+                width=table.width or 80,  # Use table width or fallback to 80 if not available
+            )
+
+            console.print(summary)
+
         return string_io.getvalue()
 
     def format_recently_watched(self, stats: List[Dict], media_type: str = "show") -> str:
@@ -206,85 +278,4 @@ class RichFormatter(BaseFormatter):
                 table.add_row(movie["title"], formatted_date, str(movie["watch_count"]), duration)
 
         console.print(table)
-        return string_io.getvalue()
-
-    def format_summary(self, stats: List[Dict], media_type: str = "show") -> str:
-        """Format summary statistics.
-
-        Args:
-            stats: List of statistics.
-            media_type: Type of media ("show" or "movie").
-
-        Returns:
-            Formatted string representation of the summary.
-        """
-        # Create a StringIO-based console to capture output
-        string_io = io.StringIO()
-        console = Console(file=string_io, width=120)
-
-        if not stats:
-            return ""
-
-        if media_type == "show":
-            # Calculate show summary statistics
-            total_shows = len(stats)
-            watched_shows = sum(1 for show in stats if show["watched_episodes"] > 0)
-            total_episodes = sum(show["total_episodes"] for show in stats)
-            watched_episodes = sum(show["watched_episodes"] for show in stats)
-            total_watch_time = sum(show["total_watch_time_minutes"] for show in stats)
-
-            # Format watch time
-            hours = int(total_watch_time // 60)
-            minutes = int(total_watch_time % 60)
-
-            # Calculate overall completion percentage, rounded to 1 decimal place
-            completion_percentage = (
-                (watched_episodes / total_episodes * 100) if total_episodes > 0 else 0
-            )
-
-            # Create a summary panel
-            summary = Panel(
-                f"Total Shows: {total_shows}\n"
-                f"Watched Shows: {watched_shows}\n"
-                f"Total Episodes: {total_episodes}\n"
-                f"Watched Episodes: {watched_episodes}\n"
-                f"Overall Completion: {completion_percentage:.1f}%\n"
-                f"Total Watch Time: {hours} hours, {minutes} minutes",
-                title="TV Show Summary",
-                border_style="green",
-            )
-        else:  # movies
-            # Calculate movie summary statistics
-            total_movies = len(stats)
-            watched_movies = sum(1 for movie in stats if movie["watched"])
-            watch_count = sum(movie["watch_count"] for movie in stats)
-            total_duration = sum(movie["duration_minutes"] for movie in stats)
-            watched_duration = sum(
-                movie["duration_minutes"] * movie["watch_count"]
-                for movie in stats
-                if movie["watched"]
-            )
-
-            # Format durations
-            total_hours = int(total_duration // 60)
-            total_minutes = int(total_duration % 60)
-            watched_hours = int(watched_duration // 60)
-            watched_minutes = int(watched_duration % 60)
-
-            # Calculate completion percentage, rounded to 1 decimal place
-            completion_percentage = (watched_movies / total_movies * 100) if total_movies > 0 else 0
-
-            # Create a summary panel
-            summary = Panel(
-                f"Total Movies: {total_movies}\n"
-                f"Watched Movies: {watched_movies}\n"
-                f"Completion: {completion_percentage:.1f}%\n"
-                f"Total Watch Count: {watch_count}\n"
-                f"Total Duration: {total_hours} hours, {total_minutes} minutes\n"
-                f"Total Watch Time: {watched_hours} hours, {watched_minutes} minutes",
-                title="Movie Summary",
-                border_style="green",
-            )
-
-        console.print(summary)
         return string_io.getvalue()

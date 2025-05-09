@@ -1,6 +1,7 @@
 """Base formatter for displaying Plex History Report statistics."""
 
 import logging
+from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
 from rich.console import Console
@@ -8,9 +9,10 @@ from rich.console import Console
 logger = logging.getLogger(__name__)
 
 
-class BaseFormatter:
+class BaseFormatter(ABC):
     """Base class for formatters."""
 
+    @abstractmethod
     def format_show_statistics(self, stats: List[Dict]) -> str:
         """Format show statistics.
 
@@ -20,8 +22,9 @@ class BaseFormatter:
         Returns:
             Formatted string representation of the statistics.
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def format_movie_statistics(self, stats: List[Dict]) -> str:
         """Format movie statistics.
 
@@ -31,8 +34,9 @@ class BaseFormatter:
         Returns:
             Formatted string representation of the statistics.
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def format_recently_watched(self, stats: List[Dict], media_type: str = "show") -> str:
         """Format recently watched media.
 
@@ -43,7 +47,7 @@ class BaseFormatter:
         Returns:
             Formatted string representation of the recently watched media.
         """
-        raise NotImplementedError()
+        pass
 
     def format_content(
         self,
@@ -67,7 +71,7 @@ class BaseFormatter:
         """
         outputs = []
 
-        # Format main statistics
+        # Format main statistics (each formatter now includes summary data in these methods)
         if media_type == "show":
             outputs.append(self.format_show_statistics(stats))
         else:

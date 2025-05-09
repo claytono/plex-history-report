@@ -5,9 +5,11 @@
 - This project is hosted on GitHub at `claytono/plex-history-report`.
 - Group multiple commands into logical sets and offer to run them in a single invocation or
   separately.
-- We are using Python 3 for this project. Use the `python3` binary when invoking Python directly.
 - We are using `uv` for Python package management. Follow best practices for `uv` in all aspects of
   this project.
+- The plex-history-stats cool can be run by invoking `bin/plex-history-report`.
+- The `scripts/` directory contains various helper scripts for running tests, linters, and other
+  development tasks.
 
 ## General Guidelines
 

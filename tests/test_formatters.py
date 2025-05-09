@@ -582,8 +582,8 @@ class TestIntegratedFormatting(unittest.TestCase):
         """Test that RichFormatter's methods are called correctly."""
         formatter = FormatterFactory.get_formatter("table")
 
-        # Set up mocks to return string values (as now expected)
-        mock_format_show.return_value = "Mock show statistics"
+        # Set up mocks to return string values
+        mock_format_show.return_value = "Mock show statistics with summary"
         mock_format_recent.return_value = "Mock recently watched"
 
         # Call format_content
@@ -597,7 +597,7 @@ class TestIntegratedFormatting(unittest.TestCase):
 
         # Check that the returned strings are included in the output
         self.assertEqual(len(outputs), 2)
-        self.assertEqual(outputs[0], "Mock show statistics")
+        self.assertEqual(outputs[0], "Mock show statistics with summary")
         self.assertEqual(outputs[1], "Mock recently watched")
 
 
