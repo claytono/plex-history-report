@@ -145,7 +145,6 @@ class RichFormatter(BaseFormatter):
         table.add_column("Watch Count", justify="right", style="green", width=12)
         table.add_column("Last Watched", justify="right", style="blue", width=16)
         table.add_column("Duration", justify="right", style="magenta", width=10)
-        table.add_column("Rating", justify="right", style="yellow", width=8)
 
         # Add rows for each movie
         for movie in stats:
@@ -163,12 +162,7 @@ class RichFormatter(BaseFormatter):
             minutes = int(movie["duration_minutes"] % 60)
             duration = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
 
-            # Format rating
-            rating = f"{movie['rating']}" if movie["rating"] else "-"
-
-            table.add_row(
-                movie["title"], str(movie["watch_count"]), formatted_date, duration, rating
-            )
+            table.add_row(movie["title"], str(movie["watch_count"]), formatted_date, duration)
 
         # Create a temporary string to capture just the table for width measurement
         temp_io = io.StringIO()
