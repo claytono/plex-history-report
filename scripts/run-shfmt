@@ -20,7 +20,7 @@ fi
 
 # Set up shfmt binary directory
 BIN_DIR="$(pwd)/.bin"
-SHFMT_VERSION="3.7.0" # Current latest version as of now
+SHFMT_VERSION="3.11.0" # Current latest version as of now
 SHFMT_BINARY="$BIN_DIR/shfmt"
 
 # Function to install shfmt if not present
