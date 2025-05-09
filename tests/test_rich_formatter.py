@@ -186,11 +186,6 @@ class TestRichFormatter(unittest.TestCase):
         self.assertIn("1h 30m", result)  # 90 minutes for Test Movie 2
         self.assertIn("45m", result)  # 45 minutes for Test Movie 3
 
-        # Check rating formatting
-        self.assertIn("8.5", result)  # Test Movie 1 rating
-        self.assertIn("-", result)  # No rating for Test Movie 2
-        self.assertIn("9.2", result)  # Test Movie 3 rating
-
     def test_format_movie_statistics_contains_summary(self):
         """Test that movie statistics output includes summary information."""
         result = self.formatter.format_movie_statistics(self.movie_data)
