@@ -57,7 +57,6 @@ select = [
     "ARG", # flake8-unused-arguments
     "PTH", # use pathlib
     "RUF", # ruff-specific rules
-    # "C90", # McCabe complexity - Removed in favor of Xenon complexity checking
 ]
 ignore = [
     "E501", # line too long (handled by formatter)
