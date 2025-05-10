@@ -30,4 +30,3 @@ jobs:
       - name: Run Xenon complexity check
         run: |
           ./scripts/run-xenon-check
-
