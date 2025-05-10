@@ -20,19 +20,17 @@ echo "Note: Thresholds are temporarily high to allow CI to pass while refactorin
 echo ""
 
 # Run xenon with the configured thresholds
-uvx xenon "${DEFAULT_PATHS[@]}" \
+if uvx xenon "${DEFAULT_PATHS[@]}" \
     --exclude "$EXCLUDE_PATTERNS" \
     --no-assert \
     -a "$AVERAGE_THRESHOLD" \
     -m "$MODULE_THRESHOLD" \
-    -b "$BLOCK_THRESHOLD"
-
-# Check if xenon exited successfully
-if [ $? -eq 0 ]; then
+    -b "$BLOCK_THRESHOLD"; then
+    
     echo -e "\n✓ Xenon check passed! Code complexity is within acceptable thresholds."
 else
     echo -e "\n✘ Xenon check failed! Code complexity exceeds defined thresholds."
-    echo "  Run ./scripts/run-complexity-check for detailed analysis."
+    echo "  Refactoring is needed to reduce complexity in the identified functions."
     exit 1
 fi
 
