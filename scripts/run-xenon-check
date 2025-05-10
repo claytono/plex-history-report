@@ -10,9 +10,9 @@ EXCLUDE_PATTERNS="*/__pycache__/*,*/\\.git/*,*/\\.venv/*"
 
 # Complexity thresholds (temporarily set high to allow CI to pass while we refactor)
 # We'll gradually lower these as we refactor the codebase
-AVERAGE_THRESHOLD="C"   # Average complexity per module: C = 11-20
-MODULE_THRESHOLD="D"    # Module-level complexity: D = 21-30
-BLOCK_THRESHOLD="F"     # Block-level complexity: F = 41+ (temporarily allowing high values)
+AVERAGE_THRESHOLD="C" # Average complexity per module: C = 11-20
+MODULE_THRESHOLD="D"  # Module-level complexity: D = 21-30
+BLOCK_THRESHOLD="F"   # Block-level complexity: F = 41+ (temporarily allowing high values)
 
 echo "===== Running Xenon Code Complexity Checks ====="
 echo "Complexity thresholds: average=$AVERAGE_THRESHOLD, module=$MODULE_THRESHOLD, block=$BLOCK_THRESHOLD"
