@@ -27,6 +27,7 @@ dev = [
     "pymarkdownlnt>=0.9.0",
     "shellcheck-py>=0.9.0",
     "radon>=6.0.0",         # Added for code complexity analysis
+    "xenon>=0.9.0",         # Added for CI-focused complexity checking
 ]
 
 [project.scripts]
