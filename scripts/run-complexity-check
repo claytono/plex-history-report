@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# Script to run Radon code complexity analysis on the project
+
+# Exit on any error
+set -e
+
+# Default paths to analyze
+DEFAULT_PATHS=("plex_history_report" "tests")
+EXCLUDE_PATTERNS="*/__pycache__/*,*/\\.git/*,*/\\.venv/*"
+
+# Parse command-line arguments
+SHOW_ALL=0
+COMPLEXITY_THRESHOLD="C"
+PATHS=()
+
+# Process arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --all)
+            SHOW_ALL=1
+            shift
+            ;;
+        --threshold=*)
+            COMPLEXITY_THRESHOLD="${1#*=}"
+            shift
+            ;;
+        --help | -h)
+            echo "Usage: $0 [options] [path1 path2...]"
+            echo ""
+            echo "Options:"
+            echo "  --all                Show all functions, not just the complex ones"
+            echo "  --threshold=X        Set complexity threshold (A/B/C/D/E/F, default: C)"
+            echo "  --help,-h            Show this help message"
+            echo ""
+            echo "If no paths are specified, defaults to: ${DEFAULT_PATHS[*]}"
+            exit 0
+            ;;
+        *)
+            PATHS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+# If no paths provided, use defaults
+if [ ${#PATHS[@]} -eq 0 ]; then
+    PATHS=("${DEFAULT_PATHS[@]}")
+fi
+
+# Output info about the analysis
+echo "===== Running Code Complexity Analysis ====="
+echo "Analyzing paths: ${PATHS[*]}"
+echo "Complexity threshold: $COMPLEXITY_THRESHOLD (use --all to show all functions)"
+echo ""
+
+# Run cyclomatic complexity analysis
+echo "[1/3] Computing cyclomatic complexity"
+if [[ $SHOW_ALL -eq 1 ]]; then
+    uvx radon cc "${PATHS[@]}" -s --exclude "$EXCLUDE_PATTERNS"
+else
+    uvx radon cc "${PATHS[@]}" -s --min "$COMPLEXITY_THRESHOLD" --exclude "$EXCLUDE_PATTERNS"
+fi
+
+# Run maintainability index
+echo ""
+echo "[2/3] Computing maintainability index"
+uvx radon mi "${PATHS[@]}" --exclude "$EXCLUDE_PATTERNS"
+
+# Run raw metrics
+echo ""
+echo "[3/3] Computing raw metrics (LOC, LLOC, etc.)"
+uvx radon raw "${PATHS[@]}" --exclude "$EXCLUDE_PATTERNS" --summary
+
+echo ""
+echo "===== Code Complexity Analysis Complete ====="
+echo "Complexity rank explanation:"
+echo "A (1-5)    : Simple block"
+echo "B (6-10)   : Well structured and stable block"
+echo "C (11-20)  : Slightly complex block"
+echo "D (21-30)  : More complex block"
+echo "E (31-40)  : Complex block, alarming"
+echo "F (41+)    : Error-prone, unstable block"
