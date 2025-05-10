@@ -26,7 +26,6 @@ if uvx xenon "${DEFAULT_PATHS[@]}" \
     -a "$AVERAGE_THRESHOLD" \
     -m "$MODULE_THRESHOLD" \
     -b "$BLOCK_THRESHOLD"; then
-    
     echo -e "\n✓ Xenon check passed! Code complexity is within acceptable thresholds."
 else
     echo -e "\n✘ Xenon check failed! Code complexity exceeds defined thresholds."
