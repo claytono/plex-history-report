@@ -25,17 +25,17 @@ echo -e "\n[3/8] Running shell script checks (shfmt and shellcheck)"
 echo -e "\n[4/8] Running Markdown lint"
 "$SCRIPT_DIR/run-markdown-lint"
 
+# Run Xenon complexity checks
+echo -e "\n[5/8] Running Xenon complexity checks"
+"$SCRIPT_DIR/run-xenon-check"
+
 # Run Python linter (check only)
-echo -e "\n[5/8] Running Python linter"
+echo -e "\n[6/8] Running Python linter"
 "$SCRIPT_DIR/run-lint"
 
 # Run editorconfig lint (verification only, after all formatting)
-echo -e "\n[6/8] Running EditorConfig lint"
+echo -e "\n[7/8] Running EditorConfig lint"
 "$SCRIPT_DIR/run-editorconfig-lint"
-
-# Run Xenon complexity checks
-echo -e "\n[7/8] Running Xenon complexity checks"
-"$SCRIPT_DIR/run-xenon-check"
 
 # Run tests
 echo -e "\n[8/8] Running tests"
