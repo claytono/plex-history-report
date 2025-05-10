@@ -1,11 +1,17 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
+  "extends": ["config:recommended"],
   "regexManagers": [
     {
       "fileMatch": ["^scripts/run-shfmt$"],
       "matchStrings": ["SHFMT_VERSION=\"(?<currentValue>.*?)\"\\s+#\\s+Current latest version"],
       "depNameTemplate": "mvdan/sh",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    },
+    {
+      "fileMatch": ["^scripts/run-editorconfig-lint$"],
+      "matchStrings": ["EC_VERSION=\"(?<currentValue>.*?)\"\\s+#\\s+Current latest version"],
+      "depNameTemplate": "editorconfig-checker/editorconfig-checker",
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
     }
