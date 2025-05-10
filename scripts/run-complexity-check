@@ -15,36 +15,36 @@ PATHS=()
 
 # Process arguments
 while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --all)
-      SHOW_ALL=1
-      shift
-      ;;
-    --threshold=*)
-      COMPLEXITY_THRESHOLD="${1#*=}"
-      shift
-      ;;
-    --help|-h)
-      echo "Usage: $0 [options] [path1 path2...]"
-      echo ""
-      echo "Options:"
-      echo "  --all                Show all functions, not just the complex ones"
-      echo "  --threshold=X        Set complexity threshold (A/B/C/D/E/F, default: C)"
-      echo "  --help,-h            Show this help message"
-      echo ""
-      echo "If no paths are specified, defaults to: ${DEFAULT_PATHS[*]}"
-      exit 0
-      ;;
-    *)
-      PATHS+=("$1")
-      shift
-      ;;
-  esac
+    case "$1" in
+        --all)
+            SHOW_ALL=1
+            shift
+            ;;
+        --threshold=*)
+            COMPLEXITY_THRESHOLD="${1#*=}"
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [options] [path1 path2...]"
+            echo ""
+            echo "Options:"
+            echo "  --all                Show all functions, not just the complex ones"
+            echo "  --threshold=X        Set complexity threshold (A/B/C/D/E/F, default: C)"
+            echo "  --help,-h            Show this help message"
+            echo ""
+            echo "If no paths are specified, defaults to: ${DEFAULT_PATHS[*]}"
+            exit 0
+            ;;
+        *)
+            PATHS+=("$1")
+            shift
+            ;;
+    esac
 done
 
 # If no paths provided, use defaults
 if [ ${#PATHS[@]} -eq 0 ]; then
-  PATHS=("${DEFAULT_PATHS[@]}")
+    PATHS=("${DEFAULT_PATHS[@]}")
 fi
 
 # Output info about the analysis
@@ -56,9 +56,9 @@ echo ""
 # Run cyclomatic complexity analysis
 echo "[1/3] Computing cyclomatic complexity"
 if [[ $SHOW_ALL -eq 1 ]]; then
-  uvx radon cc "${PATHS[@]}" -s --exclude "$EXCLUDE_PATTERNS"
+    uvx radon cc "${PATHS[@]}" -s --exclude "$EXCLUDE_PATTERNS"
 else
-  uvx radon cc "${PATHS[@]}" -s --min "$COMPLEXITY_THRESHOLD" --exclude "$EXCLUDE_PATTERNS"
+    uvx radon cc "${PATHS[@]}" -s --min "$COMPLEXITY_THRESHOLD" --exclude "$EXCLUDE_PATTERNS"
 fi
 
 # Run maintainability index
