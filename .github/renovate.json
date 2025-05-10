@@ -1,8 +1,5 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
-  "schedule": ["weekly"],
-  "prConcurrentLimit": 20,
+  "extends": ["config:recommended"],
   "regexManagers": [
     {
       "fileMatch": ["^scripts/run-shfmt$"],
