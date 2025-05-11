@@ -4,17 +4,13 @@
 
 repos:
   # Standard hooks from community repositories
-  - repo: https://github.com/psf/black
-    rev: 23.12.1 # Match version from pyproject.toml
-    hooks:
-      - id: black
-        files: ^(plex_history_report|tests)/
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.9 # Match version from pyproject.toml
     hooks:
       - id: ruff
         args: ["--fix"]
+        files: ^(plex_history_report|tests)/
+      - id: ruff-format
         files: ^(plex_history_report|tests)/
 
   - repo: https://github.com/pre-commit/mirrors-prettier
