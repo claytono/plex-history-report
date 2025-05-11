@@ -47,18 +47,13 @@ line-length = 100
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle errors
-    "F",   # pyflakes
-    "I",   # isort
-    "W",   # pycodestyle warnings
-    "N",   # pep8-naming
     "UP",  # pyupgrade
     "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
     "SIM", # flake8-simplify
     "ARG", # flake8-unused-arguments
     "PTH", # use pathlib
-    "RUF", # ruff-specific rules
+    "PERF", # perflint
 ]
 ignore = [
     "E501", # line too long (handled by formatter)

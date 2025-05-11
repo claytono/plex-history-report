@@ -7,6 +7,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -136,16 +137,15 @@ def configure_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def run(args: argparse.Namespace) -> int:
-    """Run the plex-history-report tool.
+def setup_logging(args: argparse.Namespace) -> Dict:
+    """Configure logging and performance benchmarking.
 
     Args:
         args: Command-line arguments.
 
     Returns:
-        Exit code.
+        Dictionary to store performance data if benchmark mode is enabled.
     """
-    console = Console()
     performance_data = {}
 
     # Configure logging level
@@ -172,16 +172,30 @@ def run(args: argparse.Namespace) -> int:
 
         set_benchmarking(False)
 
+    return performance_data
+
+
+def handle_config(args: argparse.Namespace, console: Console) -> Tuple[Optional[Dict], int]:
+    """Handle configuration file loading or creation.
+
+    Args:
+        args: Command-line arguments.
+        console: Console instance for output.
+
+    Returns:
+        Tuple of (config dict, exit code).
+        If exit code is non-zero, the caller should exit with this code.
+    """
     # Create default config if requested
     if args.create_config:
         try:
             config_path = create_default_config()
             console.print(f"Created default configuration file at: {config_path}")
             console.print("Please edit this file to add your Plex server details.")
-            return 0
+            return None, 0
         except Exception as e:
             logger.error(f"Failed to create default configuration: {e}")
-            return 1
+            return None, 1
 
     # Load or create configuration
     try:
@@ -197,112 +211,266 @@ def run(args: argparse.Namespace) -> int:
             console.print(
                 "Please edit this file with your Plex server details and run the command again."
             )
-            return 0
+            return None, 0
 
         # This will use the correct priority for loading if no path is specified
         config = load_config(config_path if config_path.exists() else None)
+        return config, 0
     except ConfigError as e:
         console.print(f"[bold red]Configuration error:[/bold red] {e}")
         console.print("\nRun with --create-config to create a default configuration file.")
-        return 1
+        return None, 1
 
-    # Initialize formatter using the factory
-    try:
-        formatter = FormatterFactory.get_formatter(args.format)
-    except ValueError as e:
-        console.print(f"[bold red]Error:[/bold red] {e}")
-        return 1
 
-    try:
-        # Connect to Plex server
-        plex_config = config["plex"]
+def initialize_plex_client(
+    config: Dict, args: argparse.Namespace
+) -> Tuple[PlexClient, Optional[str]]:
+    """Initialize the Plex client and determine username.
 
-        # Set up data recorder if requested
-        data_recorder = None
-        if args.record:
-            from plex_history_report.recorders import PlexDataRecorder
+    Args:
+        config: Configuration dictionary.
+        args: Command-line arguments.
 
-            data_recorder = PlexDataRecorder(mode=args.record)
-            logger.info(f"Recording Plex data in '{args.record}' mode")
+    Returns:
+        Tuple of (PlexClient, username).
+    """
+    plex_config = config["plex"]
 
-        client = PlexClient(
-            plex_config["base_url"], plex_config["token"], data_recorder=data_recorder
+    # Set up data recorder if requested
+    data_recorder = None
+    if args.record:
+        from plex_history_report.recorders import PlexDataRecorder
+
+        data_recorder = PlexDataRecorder(mode=args.record)
+        logger.info(f"Recording Plex data in '{args.record}' mode")
+
+    client = PlexClient(plex_config["base_url"], plex_config["token"], data_recorder=data_recorder)
+
+    # Determine user to filter by
+    username = None
+    if args.user:
+        # Command-line argument takes precedence
+        username = args.user
+    elif plex_config.get("default_user"):
+        # Use default user from config if available
+        username = plex_config["default_user"]
+        logger.info(f"Using default user from config: {username}")
+
+    return client, username
+
+
+def handle_list_users(client: PlexClient, console: Console) -> int:
+    """Handle the --list-users option.
+
+    Args:
+        client: Initialized PlexClient.
+        console: Console instance for output.
+
+    Returns:
+        Exit code.
+    """
+    users = client.get_available_users()
+    console.print("[bold]Available Plex Users:[/bold]")
+    if users:
+        for user in users:
+            console.print(f"- {user}")
+    else:
+        console.print("No users found or cannot access user information with current token.")
+    return 0
+
+
+def validate_media_selection(args: argparse.Namespace, console: Console) -> Tuple[str, str, int]:
+    """Validate the media selection and determine media type and sort field.
+
+    Args:
+        args: Command-line arguments.
+        console: Console instance for output.
+
+    Returns:
+        Tuple of (media_type, sort_by, exit_code).
+        If exit_code is non-zero, the caller should exit with this code.
+    """
+    # Require either --tv or --movies when not using utility commands
+    if not (args.tv or args.movies):
+        console.print("[bold red]Error:[/bold red] Either --tv or --movies must be specified.")
+        console.print("Run with --help for usage information.")
+        return "", "", 1
+
+    # Determine media type
+    media_type = "show" if args.tv else "movie"
+
+    # Determine sort field
+    sort_by = None
+    if args.sort_by:
+        valid_sort_options = TV_SORT_OPTIONS if args.tv else MOVIE_SORT_OPTIONS
+        if args.sort_by not in valid_sort_options:
+            console.print(f"[bold red]Invalid sort option:[/bold red] {args.sort_by}")
+            console.print(
+                f"Valid sort options for {media_type}s are: {', '.join(valid_sort_options)}"
+            )
+            return "", "", 1
+        sort_by = args.sort_by
+    else:
+        # Use default sort options
+        sort_by = "completion_percentage" if args.tv else "last_watched"
+
+    return media_type, sort_by, 0
+
+
+def get_media_statistics(
+    client: PlexClient,
+    args: argparse.Namespace,
+    media_type: str,
+    sort_by: str,
+    username: Optional[str],
+) -> List[Dict]:
+    """Get media statistics based on media type and filtering options.
+
+    Args:
+        client: Initialized PlexClient.
+        args: Command-line arguments.
+        media_type: Type of media ("show" or "movie").
+        sort_by: Field to sort by.
+        username: Username to filter by.
+
+    Returns:
+        List of media statistics.
+    """
+    if media_type == "show":
+        logger.debug(f"Fetching TV show statistics for user: {username}")
+        stats = client.get_all_show_statistics(
+            username=username, include_unwatched=args.include_unwatched, sort_by=sort_by
         )
 
-        # List users if requested
-        if args.list_users:
-            users = client.get_available_users()
-            console.print("[bold]Available Plex Users:[/bold]")
-            if users:
-                for user in users:
-                    console.print(f"- {user}")
-            else:
-                console.print(
-                    "No users found or cannot access user information with current token."
-                )
-            return 0
+        # Filter for partially watched items if requested
+        if args.partially_watched_only:
+            logger.debug("Filtering for partially watched TV shows")
+            # Safely filter out items with None or invalid completion_percentage values
+            stats = [
+                show
+                for show in stats
+                if show.get("completion_percentage") is not None
+                and isinstance(show["completion_percentage"], (int, float))
+                and 0 < show["completion_percentage"] < 100
+            ]
+            logger.info(f"Filtered to {len(stats)} partially watched TV shows")
+    else:  # movies
+        logger.debug(f"Fetching movie statistics for user: {username}")
+        stats = client.get_all_movie_statistics(
+            username=username, include_unwatched=args.include_unwatched, sort_by=sort_by
+        )
 
-        # Require either --tv or --movies when not using utility commands
-        if not (args.tv or args.movies):
-            console.print("[bold red]Error:[/bold red] Either --tv or --movies must be specified.")
-            console.print("Run with --help for usage information.")
+        # Filter for partially watched movies if requested
+        if args.partially_watched_only:
+            logger.debug("Filtering for partially watched movies")
+            # Consider movies "partially watched" if they're between 0% and 100% complete
+            # Safely handle None values or invalid completion_percentage values
+            before_count = len(stats)
+            stats = [
+                movie
+                for movie in stats
+                if movie.get("completion_percentage") is not None
+                and isinstance(movie["completion_percentage"], (int, float))
+                and 0 < movie["completion_percentage"] < 100
+            ]
+            logger.info(
+                f"Filtered to {len(stats)} partially watched movies (removed {before_count - len(stats)} fully watched or unwatched movies)"
+            )
+
+    return stats
+
+
+def get_recently_watched(
+    client: PlexClient, media_type: str, username: Optional[str]
+) -> Optional[List[Dict]]:
+    """Get recently watched content.
+
+    Args:
+        client: Initialized PlexClient.
+        media_type: Type of media ("show" or "movie").
+        username: Username to filter by.
+
+    Returns:
+        List of recently watched items or None.
+    """
+    if media_type == "show":
+        return client.get_recently_watched_shows(username=username)
+    else:
+        return client.get_recently_watched_movies(username=username)
+
+
+def display_performance_report(console: Console, performance_data: Dict) -> None:
+    """Display the performance benchmark report.
+
+    Args:
+        console: Console instance for output.
+        performance_data: Performance data to display.
+    """
+    if not performance_data:
+        return
+
+    console.print("\n[bold]Performance Benchmark Report:[/bold]")
+    console.print("=" * 60)
+
+    # Sort functions by total time spent
+    total_times = {func: sum(times) for func, times in performance_data.items()}
+    sorted_funcs = sorted(total_times.keys(), key=lambda f: total_times[f], reverse=True)
+
+    # Display table of results
+    console.print(f"{'Function':<40} {'Calls':<8} {'Total (s)':<12} {'Avg (s)':<12}")
+    console.print("-" * 60)
+
+    for func in sorted_funcs:
+        times = performance_data[func]
+        calls = len(times)
+        total = sum(times)
+        avg = total / calls
+        console.print(f"{func:<40} {calls:<8} {total:<12.2f} {avg:<12.2f}")
+
+    console.print("=" * 60)
+
+
+def run(args: argparse.Namespace) -> int:
+    """Run the plex-history-report tool.
+
+    Args:
+        args: Command-line arguments.
+
+    Returns:
+        Exit code.
+    """
+    console = Console()
+
+    # Setup logging and performance benchmarking
+    performance_data = setup_logging(args)
+
+    # Handle configuration
+    config, exit_code = handle_config(args, console)
+    if exit_code != 0 or config is None:
+        return exit_code
+
+    try:
+        # Initialize formatter
+        try:
+            formatter = FormatterFactory.get_formatter(args.format)
+        except ValueError as e:
+            console.print(f"[bold red]Error:[/bold red] {e}")
             return 1
 
-        # Determine media type
-        media_type = "show" if args.tv else "movie"
+        # Initialize Plex client
+        client, username = initialize_plex_client(config, args)
 
-        # Determine sort field
-        sort_by = None
-        if args.sort_by:
-            valid_sort_options = TV_SORT_OPTIONS if args.tv else MOVIE_SORT_OPTIONS
-            if args.sort_by not in valid_sort_options:
-                console.print(f"[bold red]Invalid sort option:[/bold red] {args.sort_by}")
-                console.print(
-                    f"Valid sort options for {media_type}s are: {', '.join(valid_sort_options)}"
-                )
-                return 1
-            sort_by = args.sort_by
-        else:
-            # Use default sort options
-            sort_by = "completion_percentage" if args.tv else "last_watched"
+        # Handle list users option
+        if args.list_users:
+            return handle_list_users(client, console)
 
-        # Determine user to filter by
-        username = None
-        if args.user:
-            # Command-line argument takes precedence
-            username = args.user
-        elif plex_config.get("default_user"):
-            # Use default user from config if available
-            username = plex_config["default_user"]
-            logger.info(f"Using default user from config: {username}")
+        # Validate media selection
+        media_type, sort_by, exit_code = validate_media_selection(args, console)
+        if exit_code != 0:
+            return exit_code
 
-        # Get appropriate statistics based on media type
-        if args.tv:
-            logger.debug(f"Fetching TV show statistics for user: {username}")
-            stats = client.get_all_show_statistics(
-                username=username, include_unwatched=args.include_unwatched, sort_by=sort_by
-            )
-
-            # Filter for partially watched items if requested
-            if args.partially_watched_only:
-                logger.debug("Filtering for partially watched TV shows")
-                stats = [show for show in stats if 0 < show["completion_percentage"] < 100]
-                logger.info(f"Filtered to {len(stats)} partially watched TV shows")
-        else:  # movies
-            logger.debug(f"Fetching movie statistics for user: {username}")
-            stats = client.get_all_movie_statistics(
-                username=username, include_unwatched=args.include_unwatched, sort_by=sort_by
-            )
-
-            # Filter for partially watched movies if requested
-            if args.partially_watched_only:
-                logger.debug("Filtering for partially watched movies")
-                # Consider movies "partially watched" if they're between 0% and 100% complete
-                before_count = len(stats)
-                stats = [movie for movie in stats if 0 < movie["completion_percentage"] < 100]
-                logger.info(
-                    f"Filtered to {len(stats)} partially watched movies (removed {before_count - len(stats)} fully watched or unwatched movies)"
-                )
+        # Get statistics based on media type
+        stats = get_media_statistics(client, args, media_type, sort_by, username)
 
         # For backward compatibility, map --detailed to --show-recent
         if args.detailed:
@@ -312,48 +480,25 @@ def run(args: argparse.Namespace) -> int:
         # Get recently watched content if needed
         recently_watched = None
         if args.show_recent:
-            if args.tv:
-                recently_watched = client.get_recently_watched_shows(username=username)
-            else:
-                recently_watched = client.get_recently_watched_movies(username=username)
+            recently_watched = get_recently_watched(client, media_type, username)
 
         # Skip formatting and displaying output if in record mode
         if args.record:
             logger.info("Record mode active - skipping normal output display")
             return 0
 
-        # Use the standardized format_content method for all formatters
+        # Format and display output
         outputs = formatter.format_content(
             stats,
             media_type=media_type,
             show_recent=args.show_recent,
             recently_watched=recently_watched,
         )
-
-        # Use the standardized display_output method to print to console
         formatter.display_output(console, outputs)
 
         # Display performance report if benchmark mode is enabled
-        if args.benchmark and performance_data:
-            console.print("\n[bold]Performance Benchmark Report:[/bold]")
-            console.print("=" * 60)
-
-            # Sort functions by total time spent
-            total_times = {func: sum(times) for func, times in performance_data.items()}
-            sorted_funcs = sorted(total_times.keys(), key=lambda f: total_times[f], reverse=True)
-
-            # Display table of results
-            console.print(f"{'Function':<40} {'Calls':<8} {'Total (s)':<12} {'Avg (s)':<12}")
-            console.print("-" * 60)
-
-            for func in sorted_funcs:
-                times = performance_data[func]
-                calls = len(times)
-                total = sum(times)
-                avg = total / calls
-                console.print(f"{func:<40} {calls:<8} {total:<12.2f} {avg:<12.2f}")
-
-            console.print("=" * 60)
+        if args.benchmark:
+            display_performance_report(console, performance_data)
 
         return 0
 
