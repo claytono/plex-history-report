@@ -1,44 +1,19 @@
 #!/bin/bash
-# Script to run all CI checks in one go
+# Script to run all CI checks in one go using pre-commit
 
 # Exit on any error
 set -e
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "===== Running all CI checks using pre-commit ====="
 
-echo "===== Running all CI checks ====="
-
-# Format text files with Prettier
-echo -e "\n[1/8] Formatting text files with Prettier"
-"$SCRIPT_DIR/run-prettier"
-
-# Format Python code with Black
-echo -e "\n[2/8] Formatting Python code with Black"
-"$SCRIPT_DIR/run-black"
-
-# Run shell script checks (shfmt and shellcheck)
-echo -e "\n[3/8] Running shell script checks (shfmt and shellcheck)"
-"$SCRIPT_DIR/run-shell-checks"
-
-# Run markdown lint
-echo -e "\n[4/8] Running Markdown lint"
-"$SCRIPT_DIR/run-markdown-lint"
-
-# Run Xenon complexity checks
-echo -e "\n[5/8] Running Xenon complexity checks"
-"$SCRIPT_DIR/run-xenon-check"
-
-# Run Python linter (check only)
-echo -e "\n[6/8] Running Python linter"
-"$SCRIPT_DIR/run-lint"
-
-# Run editorconfig lint (verification only, after all formatting)
-echo -e "\n[7/8] Running EditorConfig lint"
-"$SCRIPT_DIR/run-editorconfig-lint"
-
-# Run tests
-echo -e "\n[8/8] Running tests"
-"$SCRIPT_DIR/run-tests"
+# If no arguments are provided, run all hooks on all files
+# Otherwise pass the arguments to pre-commit
+if [ $# -eq 0 ]; then
+    # Run all pre-commit hooks on all files
+    uv run pre-commit run --all-files
+else
+    # Pass all arguments to pre-commit
+    uv run pre-commit run "$@"
+fi
 
 echo -e "\n===== All checks completed successfully! ====="

@@ -168,24 +168,29 @@ Run the help command for a complete list of options:
 
 ## Development
 
-### Running Tests
+### Running Tests and Checks
 
-Run the test suite using the included test runner:
+We use pre-commit hooks to ensure code quality. Always run all checks using the provided script:
 
 ```bash
-./scripts/run-tests
+./scripts/run-all-checks
 ```
 
-This will run the tests with coverage analysis and display a summary of the coverage results in the
-terminal. Detailed coverage reports are also generated in HTML and XML formats.
+This script runs all pre-commit hooks including:
 
-#### Coverage Reports
+- Black (code formatting)
+- Ruff (linting)
+- Prettier (markdown/yaml/json formatting)
+- ShellCheck and shfmt (shell script checks)
+- Xenon (code complexity)
+- PyMarkdown (markdown linting)
+- Tests with coverage
 
-After running tests, you can:
+For individual checks, use pre-commit directly:
 
-- View the terminal coverage summary showing code coverage percentages
-- Open the HTML report at `htmlcov/index.html` for detailed line-by-line coverage
-- Use the XML report at `coverage.xml` for integration with CI tools
+```bash
+uv run pre-commit run [hook-id] --all-files
+```
 
 ### Code Quality
 
