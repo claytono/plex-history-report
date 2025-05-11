@@ -100,9 +100,7 @@ class TestCLIParser(unittest.TestCase):
             return_value={"plex": {"base_url": "test", "token": "test"}},
         ), patch("plex_history_report.cli.PlexClient", return_value=mock_client), patch(
             "plex_history_report.cli.FormatterFactory.get_formatter", return_value=mock_formatter
-        ), patch(
-            "plex_history_report.cli.Console", return_value=MagicMock()
-        ), patch(
+        ), patch("plex_history_report.cli.Console", return_value=MagicMock()), patch(
             "plex_history_report.cli.logger"
         ):
             # Parse args with --partially-watched-only
@@ -148,9 +146,7 @@ class TestCLIParser(unittest.TestCase):
             return_value={"plex": {"base_url": "test", "token": "test"}},
         ), patch("plex_history_report.cli.PlexClient", return_value=mock_client), patch(
             "plex_history_report.cli.FormatterFactory.get_formatter", return_value=mock_formatter
-        ), patch(
-            "plex_history_report.cli.Console", return_value=MagicMock()
-        ), patch(
+        ), patch("plex_history_report.cli.Console", return_value=MagicMock()), patch(
             "plex_history_report.cli.logger"
         ):
             # Parse args with --partially-watched-only
@@ -186,9 +182,7 @@ class TestCLIParser(unittest.TestCase):
             "plex_history_report.cli.load_config"
         ), patch("plex_history_report.cli.PlexClient"), patch(
             "plex_history_report.cli.FormatterFactory.get_formatter", return_value=mock_formatter
-        ), patch(
-            "plex_history_report.cli.Console", return_value=MagicMock()
-        ):
+        ), patch("plex_history_report.cli.Console", return_value=MagicMock()):
             # Parse args with --debug
             args = self.parser.parse_args(["--tv", "--debug"])
             self.assertTrue(args.debug)
@@ -228,9 +222,7 @@ class TestCLIParser(unittest.TestCase):
             return_value={"plex": {"base_url": "test", "token": "test"}},
         ), patch("plex_history_report.cli.PlexClient", return_value=mock_client), patch(
             "plex_history_report.cli.FormatterFactory.get_formatter", return_value=mock_formatter
-        ), patch(
-            "plex_history_report.cli.Console", return_value=MagicMock()
-        ), patch(
+        ), patch("plex_history_report.cli.Console", return_value=MagicMock()), patch(
             "plex_history_report.cli.logger"
         ):
             # Case 1: Normal filtering (default)
@@ -291,9 +283,7 @@ class TestRefactoredCLIFunctions(unittest.TestCase):
             "plex_history_report.cli.logger"
         ) as mock_logger, patch(
             "plex_history_report.utils.set_benchmarking"
-        ) as mock_set_benchmark, patch(
-            "plex_history_report.cli.PerformanceLogHandler"
-        ):
+        ) as mock_set_benchmark, patch("plex_history_report.cli.PerformanceLogHandler"):
             setup_logging(mock_args)
 
             # Check that debug logging was enabled
