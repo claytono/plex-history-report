@@ -35,9 +35,9 @@ if [ ${#SHELL_ARGS[@]} -eq 0 ]; then
     done < <(find bin scripts -type f -not -path "*/\.*")
 fi
 
-# Run ShellCheck with uvx
+# Run ShellCheck with uv run
 echo "Running shellcheck on: ${SHELL_ARGS[*]}"
-if ! uvx --from=shellcheck-py shellcheck "${SHELL_ARGS[@]}"; then
+if ! uv run shellcheck-py shellcheck "${SHELL_ARGS[@]}"; then
     echo -e "\nShell script linting found issues."
     exit 1
 fi
