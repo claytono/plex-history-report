@@ -23,6 +23,7 @@ dev = [
     "codecov>=2.1.13",
     "ruff>=0.3.0",                 # Used for both linting and formatting (replaces black)
     "isort>=5.12.0",
+    "ssort>=0.14.0",               # Added for statement sorting
     "pymarkdownlnt>=0.9.0",
     "shellcheck-py>=0.9.0",
     "radon>=6.0.0",                # Added for code complexity analysis

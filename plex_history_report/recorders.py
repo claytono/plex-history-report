@@ -42,151 +42,6 @@ class PlexDataRecorder:
                 "This data may contain sensitive information and should not be shared."
             )
 
-    def record_data(self, data_type: str, data: Any) -> None:
-        """Record Plex data of a specified type.
-
-        Args:
-            data_type: Type identifier for the data being stored (e.g., 'all_shows').
-            data: The Plex data to record.
-        """
-        try:
-            if self.mode in ["raw-data", "both"]:
-                self._record_raw_data(data_type, data)
-
-            if self.mode in ["test-data", "both"]:
-                self._record_test_data(data_type, data)
-        except Exception as e:
-            logger.warning(f"Error recording data for {data_type}: {e}")
-
-    def _record_raw_data(self, data_type: str, data: Any) -> None:
-        """Record raw Plex API data.
-
-        Args:
-            data_type: Type identifier for the data being stored.
-            data: The raw data to record.
-        """
-        try:
-            # Determine if this is TV or movie data
-            if data_type in ["all_shows", "recently_watched_shows"]:
-                self._store_raw_tv_data(data_type, data)
-            elif data_type in ["all_movies", "recently_watched_movies"]:
-                self._store_raw_movie_data(data_type, data)
-            else:
-                # For other data types, store in both to ensure it's captured
-                self._store_raw_tv_data(data_type, data)
-                self._store_raw_movie_data(data_type, data)
-
-        except Exception as e:
-            logger.warning(f"Error recording raw data for {data_type}: {e}")
-
-    def _store_raw_tv_data(self, data_type: str, data: Any) -> None:
-        """Store raw TV data.
-
-        Args:
-            data_type: Type identifier for the data being stored.
-            data: The data to store.
-        """
-        if data_type not in self.raw_tv_data:
-            self.raw_tv_data[data_type] = []
-
-        # Handle list-like data
-        if hasattr(data, "__iter__") and not isinstance(data, (str, dict)):
-            for item in data:
-                self.raw_tv_data[data_type].append(self._serialize_plex_item(item))
-        else:
-            # Handle single items
-            self.raw_tv_data[data_type].append(self._serialize_plex_item(data))
-
-        # Save the data to file
-        self._save_raw_tv_data()
-
-    def _store_raw_movie_data(self, data_type: str, data: Any) -> None:
-        """Store raw movie data.
-
-        Args:
-            data_type: Type identifier for the data being stored.
-            data: The data to store.
-        """
-        if data_type not in self.raw_movie_data:
-            self.raw_movie_data[data_type] = []
-
-        # Handle list-like data
-        if hasattr(data, "__iter__") and not isinstance(data, (str, dict)):
-            for item in data:
-                self.raw_movie_data[data_type].append(self._serialize_plex_item(item))
-        else:
-            # Handle single items
-            self.raw_movie_data[data_type].append(self._serialize_plex_item(data))
-
-        # Save the data to file
-        self._save_raw_movie_data()
-
-    def _record_test_data(self, data_type: str, data: Any) -> None:
-        """Record anonymized test data.
-
-        Args:
-            data_type: Type identifier for the data being stored.
-            data: The data to anonymize and record.
-        """
-        try:
-            # Process the data into an anonymized format
-            if data_type in ["all_shows", "recently_watched_shows"]:
-                processed_data = self._process_for_test_data(data_type, data)
-                self._store_test_tv_data(data_type, processed_data)
-            elif data_type in ["all_movies", "recently_watched_movies"]:
-                processed_data = self._process_for_test_data(data_type, data)
-                self._store_test_movie_data(data_type, processed_data)
-            else:
-                # For other data types, store in both to ensure it's captured
-                processed_data = self._process_for_test_data(data_type, data)
-                self._store_test_tv_data(data_type, processed_data)
-                self._store_test_movie_data(data_type, processed_data)
-
-        except Exception as e:
-            logger.warning(f"Error recording test data for {data_type}: {e}")
-
-    def _store_test_tv_data(self, data_type: str, data: Any) -> None:
-        """Store processed test data for TV shows.
-
-        Args:
-            data_type: Type identifier for the data being stored.
-            data: The processed data to store.
-        """
-        if data_type not in self.test_tv_data:
-            self.test_tv_data[data_type] = data
-        else:
-            # Append or merge as appropriate for the data type
-            if isinstance(self.test_tv_data[data_type], list) and isinstance(data, list):
-                self.test_tv_data[data_type].extend(data)
-            elif isinstance(self.test_tv_data[data_type], dict) and isinstance(data, dict):
-                self.test_tv_data[data_type].update(data)
-            else:
-                self.test_tv_data[data_type] = data
-
-        # Save the test data
-        self._save_test_tv_data()
-
-    def _store_test_movie_data(self, data_type: str, data: Any) -> None:
-        """Store processed test data for movies.
-
-        Args:
-            data_type: Type identifier for the data being stored.
-            data: The processed data to store.
-        """
-        if data_type not in self.test_movie_data:
-            self.test_movie_data[data_type] = data
-        else:
-            # Append or merge as appropriate for the data type
-            if isinstance(self.test_movie_data[data_type], list) and isinstance(data, list):
-                self.test_movie_data[data_type].extend(data)
-            elif isinstance(self.test_movie_data[data_type], dict) and isinstance(data, dict):
-                self.test_movie_data[data_type].update(data)
-            else:
-                self.test_movie_data[data_type] = data
-
-        # Save the test data
-        self._save_test_movie_data()
-
     @staticmethod
     def _serialize_plex_item(item: Any) -> Dict:
         """Convert a Plex item to a serializable dictionary.
@@ -238,205 +93,178 @@ class PlexDataRecorder:
             # Return a minimal representation
             return {"error": str(e), "type": getattr(item, "type", "unknown")}
 
-    def _process_for_test_data(self, data_type: str, data: Any) -> Any:
-        """Process data into an anonymized format suitable for test fixtures.
+    def _save_raw_tv_data(self) -> None:
+        """Save collected raw TV data to a fixed JSON file, overwriting if it exists."""
+        if not self.raw_tv_data:
+            return
+
+        try:
+            # Use a fixed filename for TV data
+            filename = self.output_dir / "plex_raw_tv_data.json"
+
+            # Save the data to file (overwrites if exists)
+            with filename.open("w", encoding="utf-8") as f:
+                json.dump(self.raw_tv_data, f, indent=2, default=str)
+
+            logger.info(f"Saved raw TV data to {filename}")
+        except Exception as e:
+            logger.error(f"Error saving raw TV data to file: {e}")
+
+    def _store_raw_tv_data(self, data_type: str, data: Any) -> None:
+        """Store raw TV data.
 
         Args:
-            data_type: Type identifier for the data being processed.
-            data: The data to process.
-
-        Returns:
-            Processed data in a format suitable for test fixtures.
+            data_type: Type identifier for the data being stored.
+            data: The data to store.
         """
-        # Process based on data type to generate anonymized test fixtures
-        if data_type == "all_shows":
-            return self._process_shows_for_test(data)
-        elif data_type == "all_movies":
-            return self._process_movies_for_test(data)
-        elif data_type == "recently_watched_shows":
-            return self._process_recent_shows_for_test(data)
-        elif data_type == "recently_watched_movies":
-            return self._process_recent_movies_for_test(data)
+        if data_type not in self.raw_tv_data:
+            self.raw_tv_data[data_type] = []
+
+        # Handle list-like data
+        if hasattr(data, "__iter__") and not isinstance(data, (str, dict)):
+            for item in data:
+                self.raw_tv_data[data_type].append(self._serialize_plex_item(item))
         else:
-            # For unknown data types, just return a basic anonymized version
-            if hasattr(data, "__iter__") and not isinstance(data, (str, dict)):
-                return [self._anonymize_item(item) for item in data]
+            # Handle single items
+            self.raw_tv_data[data_type].append(self._serialize_plex_item(data))
+
+        # Save the data to file
+        self._save_raw_tv_data()
+
+    def _save_raw_movie_data(self) -> None:
+        """Save collected raw movie data to a fixed JSON file, overwriting if it exists."""
+        if not self.raw_movie_data:
+            return
+
+        try:
+            # Use a fixed filename for movie data
+            filename = self.output_dir / "plex_raw_movie_data.json"
+
+            # Save the data to file (overwrites if exists)
+            with filename.open("w", encoding="utf-8") as f:
+                json.dump(self.raw_movie_data, f, indent=2, default=str)
+
+            logger.info(f"Saved raw movie data to {filename}")
+        except Exception as e:
+            logger.error(f"Error saving raw movie data to file: {e}")
+
+    def _store_raw_movie_data(self, data_type: str, data: Any) -> None:
+        """Store raw movie data.
+
+        Args:
+            data_type: Type identifier for the data being stored.
+            data: The data to store.
+        """
+        if data_type not in self.raw_movie_data:
+            self.raw_movie_data[data_type] = []
+
+        # Handle list-like data
+        if hasattr(data, "__iter__") and not isinstance(data, (str, dict)):
+            for item in data:
+                self.raw_movie_data[data_type].append(self._serialize_plex_item(item))
+        else:
+            # Handle single items
+            self.raw_movie_data[data_type].append(self._serialize_plex_item(data))
+
+        # Save the data to file
+        self._save_raw_movie_data()
+
+    def _record_raw_data(self, data_type: str, data: Any) -> None:
+        """Record raw Plex API data.
+
+        Args:
+            data_type: Type identifier for the data being stored.
+            data: The raw data to record.
+        """
+        try:
+            # Determine if this is TV or movie data
+            if data_type in ["all_shows", "recently_watched_shows"]:
+                self._store_raw_tv_data(data_type, data)
+            elif data_type in ["all_movies", "recently_watched_movies"]:
+                self._store_raw_movie_data(data_type, data)
             else:
-                return self._anonymize_item(data)
+                # For other data types, store in both to ensure it's captured
+                self._store_raw_tv_data(data_type, data)
+                self._store_raw_movie_data(data_type, data)
 
-    def _process_shows_for_test(self, shows) -> List[Dict]:
-        """Process show data into an anonymized format suitable for test fixtures.
-
-        Args:
-            shows: List of show objects.
-
-        Returns:
-            List of anonymized show data dictionaries.
-        """
-        processed = []
-
-        # Process each show with anonymized data using enumerate for better style
-        for _, item in enumerate(shows):
-            # Using a separate function to process each item avoids try-except in loop
-            processed_item = self._safely_process_show_item(item)
-            if processed_item:
-                processed.append(processed_item)
-
-        return processed
-
-    def _safely_process_show_item(self, item) -> Dict:
-        """Safely process a single show item with exception handling.
-
-        Args:
-            item: The show object to process.
-
-        Returns:
-            Processed dictionary or None if processing failed.
-        """
-        try:
-            # Use the anonymize_item method instead of hardcoded values
-            # This maintains compatibility with tests that patch this method
-            return self._anonymize_item(item)
         except Exception as e:
-            logger.warning(f"Error processing show for test data: {e}")
-            return None
+            logger.warning(f"Error recording raw data for {data_type}: {e}")
 
-    def _process_movies_for_test(self, movies) -> List[Dict]:
-        """Process movie data into an anonymized format suitable for test fixtures.
+    def _save_test_tv_data(self) -> None:
+        """Save anonymized test data for TV shows to a fixed JSON file, overwriting if it exists."""
+        if not self.test_tv_data:
+            return
 
-        Args:
-            movies: List of movie objects.
-
-        Returns:
-            List of anonymized movie data dictionaries.
-        """
-        processed = []
-
-        # Process each movie with anonymized data using enumerate
-        for _, item in enumerate(movies):
-            # Using a separate function to process each item avoids try-except in loop
-            processed_item = self._safely_process_movie_item(item)
-            if processed_item:
-                processed.append(processed_item)
-
-        return processed
-
-    def _safely_process_movie_item(self, item) -> Dict:
-        """Safely process a single movie item with exception handling.
-
-        Args:
-            item: The movie object to process.
-
-        Returns:
-            Processed dictionary or None if processing failed.
-        """
         try:
-            # Use the anonymize_item method instead of hardcoded values
-            # This maintains compatibility with tests that patch this method
-            return self._anonymize_item(item)
+            # Use a fixed filename
+            filename = self.output_dir / "plex_test_tv_data.json"
+
+            # Save the data to file (overwrites if exists)
+            with filename.open("w", encoding="utf-8") as f:
+                json.dump(self.test_tv_data, f, indent=2, default=str)
+
+            logger.info(f"Saved anonymized test TV data to {filename}")
         except Exception as e:
-            logger.warning(f"Error processing movie for test data: {e}")
-            return None
+            logger.error(f"Error saving test TV data to file: {e}")
 
-    def _process_recent_shows_for_test(self, entries) -> List[Dict]:
-        """Process recently watched show data into anonymized test fixtures.
-
-        Args:
-            entries: List of recently watched show entries.
-
-        Returns:
-            List of anonymized recently watched show data.
-        """
-        processed = []
-
-        # Get the number of entries to process, max 10
-        num_entries = min(len(entries) if entries else 0, 10)
-
-        # Use enumerate to generate show_count
-        for i in range(1, num_entries + 1):
-            # Using a separate function to process each item avoids try-except in loop
-            processed_item = self._safely_process_recent_show(i)
-            if processed_item:
-                processed.append(processed_item)
-
-        return processed
-
-    def _process_recent_movies_for_test(self, entries) -> List[Dict]:
-        """Process recently watched movie data into anonymized test fixtures.
+    def _store_test_tv_data(self, data_type: str, data: Any) -> None:
+        """Store processed test data for TV shows.
 
         Args:
-            entries: List of recently watched movie entries.
-
-        Returns:
-            List of anonymized recently watched movie data.
+            data_type: Type identifier for the data being stored.
+            data: The processed data to store.
         """
-        processed = []
+        if data_type not in self.test_tv_data:
+            self.test_tv_data[data_type] = data
+        else:
+            # Append or merge as appropriate for the data type
+            if isinstance(self.test_tv_data[data_type], list) and isinstance(data, list):
+                self.test_tv_data[data_type].extend(data)
+            elif isinstance(self.test_tv_data[data_type], dict) and isinstance(data, dict):
+                self.test_tv_data[data_type].update(data)
+            else:
+                self.test_tv_data[data_type] = data
 
-        # Get the number of entries to process, max 10
-        num_entries = min(len(entries) if entries else 0, 10)
+        # Save the test data
+        self._save_test_tv_data()
 
-        # Use range directly instead of incrementing a counter in the loop
-        for i in range(1, num_entries + 1):
-            # Using a separate function to process each item avoids try-except in loop
-            processed_item = self._safely_process_recent_movie(i)
-            if processed_item:
-                processed.append(processed_item)
+    def _save_test_movie_data(self) -> None:
+        """Save anonymized test data for movies to a fixed JSON file, overwriting if it exists."""
+        if not self.test_movie_data:
+            return
 
-        return processed
-
-    def _safely_process_recent_show(self, show_count) -> Dict:
-        """Safely process a single recent show with exception handling.
-
-        Args:
-            show_count: Counter for this show.
-
-        Returns:
-            Processed dictionary or None if processing failed.
-        """
         try:
-            days_ago = show_count - 1  # Each show was watched on a different recent day
+            # Use a fixed filename
+            filename = self.output_dir / "plex_test_movie_data.json"
 
-            processed_entry = {
-                "show_title": f"Recent Show {show_count}",
-                "episode_title": f"Episode {random.randint(1, 12)}",
-                "season": random.randint(1, 5),
-                "episode": random.randint(1, 12),
-                "duration_minutes": random.randint(20, 60),
-                "viewed_at": (datetime.now() - timedelta(days=days_ago)).isoformat(),
-                "user": "test_user",
-                "year": random.randint(2010, 2022),
-            }
+            # Save the data to file (overwrites if exists)
+            with filename.open("w", encoding="utf-8") as f:
+                json.dump(self.test_movie_data, f, indent=2, default=str)
 
-            return processed_entry
+            logger.info(f"Saved anonymized test movie data to {filename}")
         except Exception as e:
-            logger.warning(f"Error processing recent show for test data: {e}")
-            return None
+            logger.error(f"Error saving test movie data to file: {e}")
 
-    def _safely_process_recent_movie(self, movie_count) -> Dict:
-        """Safely process a single recent movie with exception handling.
+    def _store_test_movie_data(self, data_type: str, data: Any) -> None:
+        """Store processed test data for movies.
 
         Args:
-            movie_count: Counter for this movie.
-
-        Returns:
-            Processed dictionary or None if processing failed.
+            data_type: Type identifier for the data being stored.
+            data: The processed data to store.
         """
-        try:
-            days_ago = movie_count - 1  # Each movie was watched on a different recent day
+        if data_type not in self.test_movie_data:
+            self.test_movie_data[data_type] = data
+        else:
+            # Append or merge as appropriate for the data type
+            if isinstance(self.test_movie_data[data_type], list) and isinstance(data, list):
+                self.test_movie_data[data_type].extend(data)
+            elif isinstance(self.test_movie_data[data_type], dict) and isinstance(data, dict):
+                self.test_movie_data[data_type].update(data)
+            else:
+                self.test_movie_data[data_type] = data
 
-            processed_entry = {
-                "title": f"Recent Movie {movie_count}",
-                "year": random.randint(2010, 2022),
-                "duration_minutes": random.randint(85, 180),
-                "viewed_at": (datetime.now() - timedelta(days=days_ago)).isoformat(),
-                "user": "test_user",
-                "rating": (round(random.uniform(5.0, 10.0), 1) if random.random() > 0.3 else None),
-            }
-
-            return processed_entry
-        except Exception as e:
-            logger.warning(f"Error processing recent movie for test data: {e}")
-            return None
+        # Save the test data
+        self._save_test_movie_data()
 
     def _anonymize_item(self, item: Any) -> Dict:
         """Create an anonymized version of a Plex item.
@@ -471,70 +299,242 @@ class PlexDataRecorder:
             logger.warning(f"Error anonymizing item: {e}")
             return {"type": "unknown", "error": "anonymization_failed"}
 
-    def _save_raw_tv_data(self) -> None:
-        """Save collected raw TV data to a fixed JSON file, overwriting if it exists."""
-        if not self.raw_tv_data:
-            return
+    def _safely_process_show_item(self, item) -> Dict:
+        """Safely process a single show item with exception handling.
 
+        Args:
+            item: The show object to process.
+
+        Returns:
+            Processed dictionary or None if processing failed.
+        """
         try:
-            # Use a fixed filename for TV data
-            filename = self.output_dir / "plex_raw_tv_data.json"
-
-            # Save the data to file (overwrites if exists)
-            with filename.open("w", encoding="utf-8") as f:
-                json.dump(self.raw_tv_data, f, indent=2, default=str)
-
-            logger.info(f"Saved raw TV data to {filename}")
+            # Use the anonymize_item method instead of hardcoded values
+            # This maintains compatibility with tests that patch this method
+            return self._anonymize_item(item)
         except Exception as e:
-            logger.error(f"Error saving raw TV data to file: {e}")
+            logger.warning(f"Error processing show for test data: {e}")
+            return None
 
-    def _save_raw_movie_data(self) -> None:
-        """Save collected raw movie data to a fixed JSON file, overwriting if it exists."""
-        if not self.raw_movie_data:
-            return
+    def _process_shows_for_test(self, shows) -> List[Dict]:
+        """Process show data into an anonymized format suitable for test fixtures.
 
+        Args:
+            shows: List of show objects.
+
+        Returns:
+            List of anonymized show data dictionaries.
+        """
+        processed = []
+
+        # Process each show with anonymized data using enumerate for better style
+        for _, item in enumerate(shows):
+            # Using a separate function to process each item avoids try-except in loop
+            processed_item = self._safely_process_show_item(item)
+            if processed_item:
+                processed.append(processed_item)
+
+        return processed
+
+    def _safely_process_movie_item(self, item) -> Dict:
+        """Safely process a single movie item with exception handling.
+
+        Args:
+            item: The movie object to process.
+
+        Returns:
+            Processed dictionary or None if processing failed.
+        """
         try:
-            # Use a fixed filename for movie data
-            filename = self.output_dir / "plex_raw_movie_data.json"
-
-            # Save the data to file (overwrites if exists)
-            with filename.open("w", encoding="utf-8") as f:
-                json.dump(self.raw_movie_data, f, indent=2, default=str)
-
-            logger.info(f"Saved raw movie data to {filename}")
+            # Use the anonymize_item method instead of hardcoded values
+            # This maintains compatibility with tests that patch this method
+            return self._anonymize_item(item)
         except Exception as e:
-            logger.error(f"Error saving raw movie data to file: {e}")
+            logger.warning(f"Error processing movie for test data: {e}")
+            return None
 
-    def _save_test_tv_data(self) -> None:
-        """Save anonymized test data for TV shows to a fixed JSON file, overwriting if it exists."""
-        if not self.test_tv_data:
-            return
+    def _process_movies_for_test(self, movies) -> List[Dict]:
+        """Process movie data into an anonymized format suitable for test fixtures.
 
+        Args:
+            movies: List of movie objects.
+
+        Returns:
+            List of anonymized movie data dictionaries.
+        """
+        processed = []
+
+        # Process each movie with anonymized data using enumerate
+        for _, item in enumerate(movies):
+            # Using a separate function to process each item avoids try-except in loop
+            processed_item = self._safely_process_movie_item(item)
+            if processed_item:
+                processed.append(processed_item)
+
+        return processed
+
+    def _safely_process_recent_show(self, show_count) -> Dict:
+        """Safely process a single recent show with exception handling.
+
+        Args:
+            show_count: Counter for this show.
+
+        Returns:
+            Processed dictionary or None if processing failed.
+        """
         try:
-            # Use a fixed filename
-            filename = self.output_dir / "plex_test_tv_data.json"
+            days_ago = show_count - 1  # Each show was watched on a different recent day
 
-            # Save the data to file (overwrites if exists)
-            with filename.open("w", encoding="utf-8") as f:
-                json.dump(self.test_tv_data, f, indent=2, default=str)
+            processed_entry = {
+                "show_title": f"Recent Show {show_count}",
+                "episode_title": f"Episode {random.randint(1, 12)}",
+                "season": random.randint(1, 5),
+                "episode": random.randint(1, 12),
+                "duration_minutes": random.randint(20, 60),
+                "viewed_at": (datetime.now() - timedelta(days=days_ago)).isoformat(),
+                "user": "test_user",
+                "year": random.randint(2010, 2022),
+            }
 
-            logger.info(f"Saved anonymized test TV data to {filename}")
+            return processed_entry
         except Exception as e:
-            logger.error(f"Error saving test TV data to file: {e}")
+            logger.warning(f"Error processing recent show for test data: {e}")
+            return None
 
-    def _save_test_movie_data(self) -> None:
-        """Save anonymized test data for movies to a fixed JSON file, overwriting if it exists."""
-        if not self.test_movie_data:
-            return
+    def _process_recent_shows_for_test(self, entries) -> List[Dict]:
+        """Process recently watched show data into anonymized test fixtures.
 
+        Args:
+            entries: List of recently watched show entries.
+
+        Returns:
+            List of anonymized recently watched show data.
+        """
+        processed = []
+
+        # Get the number of entries to process, max 10
+        num_entries = min(len(entries) if entries else 0, 10)
+
+        # Use enumerate to generate show_count
+        for i in range(1, num_entries + 1):
+            # Using a separate function to process each item avoids try-except in loop
+            processed_item = self._safely_process_recent_show(i)
+            if processed_item:
+                processed.append(processed_item)
+
+        return processed
+
+    def _safely_process_recent_movie(self, movie_count) -> Dict:
+        """Safely process a single recent movie with exception handling.
+
+        Args:
+            movie_count: Counter for this movie.
+
+        Returns:
+            Processed dictionary or None if processing failed.
+        """
         try:
-            # Use a fixed filename
-            filename = self.output_dir / "plex_test_movie_data.json"
+            days_ago = movie_count - 1  # Each movie was watched on a different recent day
 
-            # Save the data to file (overwrites if exists)
-            with filename.open("w", encoding="utf-8") as f:
-                json.dump(self.test_movie_data, f, indent=2, default=str)
+            processed_entry = {
+                "title": f"Recent Movie {movie_count}",
+                "year": random.randint(2010, 2022),
+                "duration_minutes": random.randint(85, 180),
+                "viewed_at": (datetime.now() - timedelta(days=days_ago)).isoformat(),
+                "user": "test_user",
+                "rating": (round(random.uniform(5.0, 10.0), 1) if random.random() > 0.3 else None),
+            }
 
-            logger.info(f"Saved anonymized test movie data to {filename}")
+            return processed_entry
         except Exception as e:
-            logger.error(f"Error saving test movie data to file: {e}")
+            logger.warning(f"Error processing recent movie for test data: {e}")
+            return None
+
+    def _process_recent_movies_for_test(self, entries) -> List[Dict]:
+        """Process recently watched movie data into anonymized test fixtures.
+
+        Args:
+            entries: List of recently watched movie entries.
+
+        Returns:
+            List of anonymized recently watched movie data.
+        """
+        processed = []
+
+        # Get the number of entries to process, max 10
+        num_entries = min(len(entries) if entries else 0, 10)
+
+        # Use range directly instead of incrementing a counter in the loop
+        for i in range(1, num_entries + 1):
+            # Using a separate function to process each item avoids try-except in loop
+            processed_item = self._safely_process_recent_movie(i)
+            if processed_item:
+                processed.append(processed_item)
+
+        return processed
+
+    def _process_for_test_data(self, data_type: str, data: Any) -> Any:
+        """Process data into an anonymized format suitable for test fixtures.
+
+        Args:
+            data_type: Type identifier for the data being processed.
+            data: The data to process.
+
+        Returns:
+            Processed data in a format suitable for test fixtures.
+        """
+        # Process based on data type to generate anonymized test fixtures
+        if data_type == "all_shows":
+            return self._process_shows_for_test(data)
+        elif data_type == "all_movies":
+            return self._process_movies_for_test(data)
+        elif data_type == "recently_watched_shows":
+            return self._process_recent_shows_for_test(data)
+        elif data_type == "recently_watched_movies":
+            return self._process_recent_movies_for_test(data)
+        else:
+            # For unknown data types, just return a basic anonymized version
+            if hasattr(data, "__iter__") and not isinstance(data, (str, dict)):
+                return [self._anonymize_item(item) for item in data]
+            else:
+                return self._anonymize_item(data)
+
+    def _record_test_data(self, data_type: str, data: Any) -> None:
+        """Record anonymized test data.
+
+        Args:
+            data_type: Type identifier for the data being stored.
+            data: The data to anonymize and record.
+        """
+        try:
+            # Process the data into an anonymized format
+            if data_type in ["all_shows", "recently_watched_shows"]:
+                processed_data = self._process_for_test_data(data_type, data)
+                self._store_test_tv_data(data_type, processed_data)
+            elif data_type in ["all_movies", "recently_watched_movies"]:
+                processed_data = self._process_for_test_data(data_type, data)
+                self._store_test_movie_data(data_type, processed_data)
+            else:
+                # For other data types, store in both to ensure it's captured
+                processed_data = self._process_for_test_data(data_type, data)
+                self._store_test_tv_data(data_type, processed_data)
+                self._store_test_movie_data(data_type, processed_data)
+
+        except Exception as e:
+            logger.warning(f"Error recording test data for {data_type}: {e}")
+
+    def record_data(self, data_type: str, data: Any) -> None:
+        """Record Plex data of a specified type.
+
+        Args:
+            data_type: Type identifier for the data being stored (e.g., 'all_shows').
+            data: The Plex data to record.
+        """
+        try:
+            if self.mode in ["raw-data", "both"]:
+                self._record_raw_data(data_type, data)
+
+            if self.mode in ["test-data", "both"]:
+                self._record_test_data(data_type, data)
+        except Exception as e:
+            logger.warning(f"Error recording data for {data_type}: {e}")

@@ -181,104 +181,6 @@ class PlexClient:
         return self.server.library.sections()
 
     @timing_decorator
-    def get_all_show_statistics(
-        self,
-        username: Optional[str] = None,
-        include_unwatched: bool = False,
-        partially_watched_only: bool = False,
-        sort_by: str = "title",
-    ) -> List[Dict]:
-        """Get statistics for all TV shows.
-
-        Args:
-            username: Filter statistics for a specific user.
-            include_unwatched: Include shows with no watched episodes.
-            partially_watched_only: Only include shows that are partially watched.
-            sort_by: Field to sort results by.
-
-        Returns:
-            List of show statistics.
-        """
-        logger.debug(
-            f"Getting show statistics (user={username}, include_unwatched={include_unwatched}, "
-            f"partially_watched_only={partially_watched_only})"
-        )
-
-        # Get all TV library sections
-        tv_sections = [
-            section for section in self.server.library.sections() if section.type == "show"
-        ]
-
-        if not tv_sections:
-            logger.warning("No TV library sections found")
-            return []
-
-        # Fetch all shows from all TV sections with minimal fields
-        all_shows = []
-        for section in tv_sections:
-            # Get all shows in this section
-            shows = section.all()
-            all_shows.extend(shows)
-
-        # Record data if a recorder is provided
-        if self.data_recorder:
-            self.data_recorder.record_data("all_shows", all_shows)
-
-        # Process each show
-        show_stats = []
-        for show in all_shows:
-            stat = self._get_show_statistics(show, username)
-
-            # Handle filtering conditions
-            if not include_unwatched and stat["watched_episodes"] == 0:
-                # Skip unwatched shows
-                continue
-
-            # Only keep partially watched shows if requested
-            if partially_watched_only and not (0 < stat["completion_percentage"] < 100):
-                # Skip fully watched or completely unwatched shows
-                continue
-
-            show_stats.append(stat)
-
-        # Sort results
-        if sort_by == "title":
-            show_stats.sort(key=lambda x: x["title"].lower())
-        elif sort_by == "watched_episodes":
-            show_stats.sort(key=lambda x: x["watched_episodes"], reverse=True)
-        elif sort_by == "completion_percentage":
-            show_stats.sort(key=lambda x: x["completion_percentage"], reverse=True)
-        elif sort_by == "last_watched":
-            # Debug the last_watched values to understand what's happening
-            for show in show_stats:
-                logger.debug(f"Show '{show['title']}' has last_watched: {show['last_watched']}")
-
-            # Sort by last_watched, placing None values at the end
-            # Use a dummy date in the past for entries with None
-            def last_watched_key(item):
-                if item["last_watched"] is None:
-                    return datetime(1900, 1, 1)  # Very old date for None values
-                return item["last_watched"]
-
-            # First sort by title for stable sorting of equal dates
-            show_stats.sort(key=lambda x: x["title"].lower())
-            # Then sort by last_watched date in descending order (newest first)
-            show_stats.sort(key=last_watched_key, reverse=True)
-
-            # Debug the sorted order
-            logger.debug("Shows sorted by last_watched:")
-            for show in show_stats:
-                logger.debug(f"  {show['title']}: {show['last_watched']}")
-        elif sort_by == "year":
-            # Sort by year, placing None values at the end
-            show_stats.sort(key=lambda x: 0 if x["year"] is None else x["year"], reverse=True)
-        elif sort_by == "rating":
-            # Sort by rating, placing None values at the end
-            show_stats.sort(key=lambda x: 0 if x["rating"] is None else x["rating"], reverse=True)
-
-        return show_stats
-
-    @timing_decorator
     def _get_show_statistics(self, show: Show, username: Optional[str] = None) -> Dict:
         """Get statistics for a single show.
 
@@ -405,84 +307,102 @@ class PlexClient:
             }
 
     @timing_decorator
-    def get_all_movie_statistics(
+    def get_all_show_statistics(
         self,
         username: Optional[str] = None,
         include_unwatched: bool = False,
         partially_watched_only: bool = False,
         sort_by: str = "title",
     ) -> List[Dict]:
-        """Get statistics for all movies.
+        """Get statistics for all TV shows.
 
         Args:
             username: Filter statistics for a specific user.
-            include_unwatched: Include unwatched movies.
-            partially_watched_only: Only include partially watched movies.
+            include_unwatched: Include shows with no watched episodes.
+            partially_watched_only: Only include shows that are partially watched.
             sort_by: Field to sort results by.
 
         Returns:
-            List of movie statistics.
+            List of show statistics.
         """
         logger.debug(
-            f"Getting movie statistics (user={username}, include_unwatched={include_unwatched}, "
+            f"Getting show statistics (user={username}, include_unwatched={include_unwatched}, "
             f"partially_watched_only={partially_watched_only})"
         )
 
-        # Get all movie library sections
-        movie_sections = [
-            section for section in self.server.library.sections() if section.type == "movie"
+        # Get all TV library sections
+        tv_sections = [
+            section for section in self.server.library.sections() if section.type == "show"
         ]
 
-        if not movie_sections:
-            logger.warning("No movie library sections found")
+        if not tv_sections:
+            logger.warning("No TV library sections found")
             return []
 
-        # Fetch all movies from all movie sections
-        all_movies = []
-        for section in movie_sections:
-            # Get all movies in this section
-            movies = section.all()
-            all_movies.extend(movies)
+        # Fetch all shows from all TV sections with minimal fields
+        all_shows = []
+        for section in tv_sections:
+            # Get all shows in this section
+            shows = section.all()
+            all_shows.extend(shows)
 
         # Record data if a recorder is provided
         if self.data_recorder:
-            self.data_recorder.record_data("all_movies", all_movies)
+            self.data_recorder.record_data("all_shows", all_shows)
 
-        # Process each movie
-        movie_stats = []
-        for movie in all_movies:
-            stat = self._get_movie_statistics(movie, username)
+        # Process each show
+        show_stats = []
+        for show in all_shows:
+            stat = self._get_show_statistics(show, username)
 
-            # Apply filtering based on watch status
-            if not include_unwatched and not stat["watched"]:
-                # Skip unwatched movies
+            # Handle filtering conditions
+            if not include_unwatched and stat["watched_episodes"] == 0:
+                # Skip unwatched shows
                 continue
 
-            # Filter for partially watched movies if requested
+            # Only keep partially watched shows if requested
             if partially_watched_only and not (0 < stat["completion_percentage"] < 100):
-                # Skip fully watched or completely unwatched movies
+                # Skip fully watched or completely unwatched shows
                 continue
 
-            movie_stats.append(stat)
+            show_stats.append(stat)
 
         # Sort results
         if sort_by == "title":
-            movie_stats.sort(key=lambda x: x["title"].lower())
-        elif sort_by == "year":
-            movie_stats.sort(key=lambda x: 0 if x["year"] is None else x["year"], reverse=True)
+            show_stats.sort(key=lambda x: x["title"].lower())
+        elif sort_by == "watched_episodes":
+            show_stats.sort(key=lambda x: x["watched_episodes"], reverse=True)
+        elif sort_by == "completion_percentage":
+            show_stats.sort(key=lambda x: x["completion_percentage"], reverse=True)
         elif sort_by == "last_watched":
-            movie_stats.sort(
-                key=lambda x: datetime.min if x["last_watched"] is None else x["last_watched"],
-                reverse=True,
-            )
-        elif sort_by == "watch_count":
-            movie_stats.sort(key=lambda x: x["watch_count"], reverse=True)
-        elif sort_by == "rating":
-            movie_stats.sort(key=lambda x: 0 if x["rating"] is None else x["rating"], reverse=True)
-        elif sort_by == "duration_minutes":
-            movie_stats.sort(key=lambda x: x["duration_minutes"], reverse=True)
+            # Debug the last_watched values to understand what's happening
+            for show in show_stats:
+                logger.debug(f"Show '{show['title']}' has last_watched: {show['last_watched']}")
 
-        return movie_stats
+            # Sort by last_watched, placing None values at the end
+            # Use a dummy date in the past for entries with None
+            def last_watched_key(item):
+                if item["last_watched"] is None:
+                    return datetime(1900, 1, 1)  # Very old date for None values
+                return item["last_watched"]
+
+            # First sort by title for stable sorting of equal dates
+            show_stats.sort(key=lambda x: x["title"].lower())
+            # Then sort by last_watched date in descending order (newest first)
+            show_stats.sort(key=last_watched_key, reverse=True)
+
+            # Debug the sorted order
+            logger.debug("Shows sorted by last_watched:")
+            for show in show_stats:
+                logger.debug(f"  {show['title']}: {show['last_watched']}")
+        elif sort_by == "year":
+            # Sort by year, placing None values at the end
+            show_stats.sort(key=lambda x: 0 if x["year"] is None else x["year"], reverse=True)
+        elif sort_by == "rating":
+            # Sort by rating, placing None values at the end
+            show_stats.sort(key=lambda x: 0 if x["rating"] is None else x["rating"], reverse=True)
+
+        return show_stats
 
     @timing_decorator
     def _get_movie_statistics(self, movie: Movie, username: Optional[str] = None) -> Dict:
@@ -607,6 +527,86 @@ class PlexClient:
                 "key": movie.key,
                 "error": str(e),
             }
+
+    @timing_decorator
+    def get_all_movie_statistics(
+        self,
+        username: Optional[str] = None,
+        include_unwatched: bool = False,
+        partially_watched_only: bool = False,
+        sort_by: str = "title",
+    ) -> List[Dict]:
+        """Get statistics for all movies.
+
+        Args:
+            username: Filter statistics for a specific user.
+            include_unwatched: Include unwatched movies.
+            partially_watched_only: Only include partially watched movies.
+            sort_by: Field to sort results by.
+
+        Returns:
+            List of movie statistics.
+        """
+        logger.debug(
+            f"Getting movie statistics (user={username}, include_unwatched={include_unwatched}, "
+            f"partially_watched_only={partially_watched_only})"
+        )
+
+        # Get all movie library sections
+        movie_sections = [
+            section for section in self.server.library.sections() if section.type == "movie"
+        ]
+
+        if not movie_sections:
+            logger.warning("No movie library sections found")
+            return []
+
+        # Fetch all movies from all movie sections
+        all_movies = []
+        for section in movie_sections:
+            # Get all movies in this section
+            movies = section.all()
+            all_movies.extend(movies)
+
+        # Record data if a recorder is provided
+        if self.data_recorder:
+            self.data_recorder.record_data("all_movies", all_movies)
+
+        # Process each movie
+        movie_stats = []
+        for movie in all_movies:
+            stat = self._get_movie_statistics(movie, username)
+
+            # Apply filtering based on watch status
+            if not include_unwatched and not stat["watched"]:
+                # Skip unwatched movies
+                continue
+
+            # Filter for partially watched movies if requested
+            if partially_watched_only and not (0 < stat["completion_percentage"] < 100):
+                # Skip fully watched or completely unwatched movies
+                continue
+
+            movie_stats.append(stat)
+
+        # Sort results
+        if sort_by == "title":
+            movie_stats.sort(key=lambda x: x["title"].lower())
+        elif sort_by == "year":
+            movie_stats.sort(key=lambda x: 0 if x["year"] is None else x["year"], reverse=True)
+        elif sort_by == "last_watched":
+            movie_stats.sort(
+                key=lambda x: datetime.min if x["last_watched"] is None else x["last_watched"],
+                reverse=True,
+            )
+        elif sort_by == "watch_count":
+            movie_stats.sort(key=lambda x: x["watch_count"], reverse=True)
+        elif sort_by == "rating":
+            movie_stats.sort(key=lambda x: 0 if x["rating"] is None else x["rating"], reverse=True)
+        elif sort_by == "duration_minutes":
+            movie_stats.sort(key=lambda x: x["duration_minutes"], reverse=True)
+
+        return movie_stats
 
     def get_recently_watched_shows(
         self, username: Optional[str] = None, limit: int = 10

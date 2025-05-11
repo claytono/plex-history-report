@@ -17,56 +17,6 @@ from plex_history_report.cli import run
 class MockPlexClient:
     """Mock PlexClient that returns our fixture data instead of calling a real Plex server."""
 
-    def __init__(self, base_url=None, token=None, data_recorder=None):
-        """Initialize the mock client with our test fixtures.
-
-        Args:
-            base_url: Ignored in the mock.
-            token: Ignored in the mock.
-            data_recorder: Optional recorder for capturing data.
-        """
-        self.base_url = base_url
-        self.token = token
-        self.data_recorder = data_recorder
-
-        # Load test fixtures
-        fixtures_dir = Path(__file__).parent / "fixtures"
-        self.tv_fixtures_path = fixtures_dir / "plex_test_tv_data.json"
-        self.movie_fixtures_path = fixtures_dir / "plex_test_movie_data.json"
-
-        # Check if fixtures exist
-        if not self.tv_fixtures_path.exists():
-            raise FileNotFoundError(f"TV fixture not found: {self.tv_fixtures_path}")
-        if not self.movie_fixtures_path.exists():
-            raise FileNotFoundError(f"Movie fixture not found: {self.movie_fixtures_path}")
-
-        # Load fixtures
-        self._load_fixtures()
-
-    def _load_fixtures(self):
-        """Load test fixtures from JSON files."""
-        import json
-
-        # Load TV show data
-        with self.tv_fixtures_path.open("r", encoding="utf-8") as f:
-            tv_data = json.load(f)
-            self.all_shows = tv_data.get("all_shows", [])
-            self.recently_watched_shows = tv_data.get("recently_watched_shows", [])
-
-            # Convert string dates to datetime objects
-            self._convert_date_strings(self.all_shows)
-            self._convert_date_strings(self.recently_watched_shows)
-
-        # Load movie data
-        with self.movie_fixtures_path.open("r", encoding="utf-8") as f:
-            movie_data = json.load(f)
-            self.all_movies = movie_data.get("all_movies", [])
-            self.recently_watched_movies = movie_data.get("recently_watched_movies", [])
-
-            # Convert string dates to datetime objects
-            self._convert_date_strings(self.all_movies)
-            self._convert_date_strings(self.recently_watched_movies)
-
     def _convert_date_strings(self, items):
         """Convert ISO format date strings to datetime objects.
 
@@ -94,6 +44,56 @@ class MockPlexClient:
                 except ValueError:
                     # If conversion fails, set to None
                     item["viewed_at"] = None
+
+    def _load_fixtures(self):
+        """Load test fixtures from JSON files."""
+        import json
+
+        # Load TV show data
+        with self.tv_fixtures_path.open("r", encoding="utf-8") as f:
+            tv_data = json.load(f)
+            self.all_shows = tv_data.get("all_shows", [])
+            self.recently_watched_shows = tv_data.get("recently_watched_shows", [])
+
+            # Convert string dates to datetime objects
+            self._convert_date_strings(self.all_shows)
+            self._convert_date_strings(self.recently_watched_shows)
+
+        # Load movie data
+        with self.movie_fixtures_path.open("r", encoding="utf-8") as f:
+            movie_data = json.load(f)
+            self.all_movies = movie_data.get("all_movies", [])
+            self.recently_watched_movies = movie_data.get("recently_watched_movies", [])
+
+            # Convert string dates to datetime objects
+            self._convert_date_strings(self.all_movies)
+            self._convert_date_strings(self.recently_watched_movies)
+
+    def __init__(self, base_url=None, token=None, data_recorder=None):
+        """Initialize the mock client with our test fixtures.
+
+        Args:
+            base_url: Ignored in the mock.
+            token: Ignored in the mock.
+            data_recorder: Optional recorder for capturing data.
+        """
+        self.base_url = base_url
+        self.token = token
+        self.data_recorder = data_recorder
+
+        # Load test fixtures
+        fixtures_dir = Path(__file__).parent / "fixtures"
+        self.tv_fixtures_path = fixtures_dir / "plex_test_tv_data.json"
+        self.movie_fixtures_path = fixtures_dir / "plex_test_movie_data.json"
+
+        # Check if fixtures exist
+        if not self.tv_fixtures_path.exists():
+            raise FileNotFoundError(f"TV fixture not found: {self.tv_fixtures_path}")
+        if not self.movie_fixtures_path.exists():
+            raise FileNotFoundError(f"Movie fixture not found: {self.movie_fixtures_path}")
+
+        # Load fixtures
+        self._load_fixtures()
 
     def get_library_sections(self):
         """Mock getting library sections."""
