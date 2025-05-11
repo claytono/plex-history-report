@@ -56,20 +56,20 @@ echo ""
 # Run cyclomatic complexity analysis
 echo "[1/3] Computing cyclomatic complexity"
 if [[ $SHOW_ALL -eq 1 ]]; then
-    uvx radon cc "${PATHS[@]}" -s --exclude "$EXCLUDE_PATTERNS"
+    uv run radon cc "${PATHS[@]}" -s --exclude "$EXCLUDE_PATTERNS"
 else
-    uvx radon cc "${PATHS[@]}" -s --min "$COMPLEXITY_THRESHOLD" --exclude "$EXCLUDE_PATTERNS"
+    uv run radon cc "${PATHS[@]}" -s --min "$COMPLEXITY_THRESHOLD" --exclude "$EXCLUDE_PATTERNS"
 fi
 
 # Run maintainability index
 echo ""
 echo "[2/3] Computing maintainability index"
-uvx radon mi "${PATHS[@]}" --exclude "$EXCLUDE_PATTERNS"
+uv run radon mi "${PATHS[@]}" --exclude "$EXCLUDE_PATTERNS"
 
 # Run raw metrics
 echo ""
 echo "[3/3] Computing raw metrics (LOC, LLOC, etc.)"
-uvx radon raw "${PATHS[@]}" --exclude "$EXCLUDE_PATTERNS" --summary
+uv run radon raw "${PATHS[@]}" --exclude "$EXCLUDE_PATTERNS" --summary
 
 echo ""
 echo "===== Code Complexity Analysis Complete ====="

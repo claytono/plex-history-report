@@ -29,6 +29,7 @@ dev = [
     "radon>=6.0.0",         # Added for code complexity analysis
     "xenon>=0.9.0",         # Added for CI-focused complexity checking
     "pre-commit>=3.5.0",    # Added for pre-commit hooks
+    "editorconfig-checker>=3.2.1",  # Added for editorconfig checking
 ]
 
 [project.scripts]
@@ -72,3 +73,13 @@ docstring-code-format = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
+
+# Tool configurations for uvx to pin versions
+[tool.uvx.radon]
+version = "6.0.1"
+
+[tool.uvx.shellcheck-py]
+version = "0.9.0.5"
+
+[tool.uvx.ruff]
+version = "0.3.0"

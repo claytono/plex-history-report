@@ -57,15 +57,16 @@ repos:
       - id: pymarkdown
         args: ["scan"]
 
+  # Add editorconfig-checker.python with correct version
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.2.1
+    hooks:
+      - id: editorconfig-checker
+        alias: ec
+
   # Local hooks
   - repo: local
     hooks:
-      - id: editorconfig-lint
-        name: EditorConfig lint
-        entry: ./scripts/run-editorconfig-lint
-        language: system
-        pass_filenames: false
-
       - id: tests
         name: Run tests with coverage
         entry: ./scripts/run-tests
