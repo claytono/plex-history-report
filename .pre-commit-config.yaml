@@ -42,9 +42,9 @@ repos:
       - id: xenon
         args:
           [
-            "--max-average=C",
+            "--max-average=B",
             "--max-modules=D",
-            "--max-absolute=F",
+            "--max-absolute=E",
             "--exclude=*/__pycache__/*,*/.git/*,*/.venv/*",
             "--no-assert",
             "plex_history_report",
