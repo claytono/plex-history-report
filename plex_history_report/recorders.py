@@ -274,20 +274,32 @@ class PlexDataRecorder:
             List of anonymized show data dictionaries.
         """
         processed = []
-        show_count = 0
 
-        # Process each show with anonymized data
-        for _item in shows:
-            try:
-                show_count += 1
-
-                # Get real values for structure but anonymize content
-                # ...existing anonymization logic...
-
-            except Exception as e:
-                logger.warning(f"Error processing show for test data: {e}")
+        # Process each show with anonymized data using enumerate for better style
+        for _, item in enumerate(shows):
+            # Using a separate function to process each item avoids try-except in loop
+            processed_item = self._safely_process_show_item(item)
+            if processed_item:
+                processed.append(processed_item)
 
         return processed
+
+    def _safely_process_show_item(self, item) -> Dict:
+        """Safely process a single show item with exception handling.
+
+        Args:
+            item: The show object to process.
+
+        Returns:
+            Processed dictionary or None if processing failed.
+        """
+        try:
+            # Use the anonymize_item method instead of hardcoded values
+            # This maintains compatibility with tests that patch this method
+            return self._anonymize_item(item)
+        except Exception as e:
+            logger.warning(f"Error processing show for test data: {e}")
+            return None
 
     def _process_movies_for_test(self, movies) -> List[Dict]:
         """Process movie data into an anonymized format suitable for test fixtures.
@@ -299,17 +311,32 @@ class PlexDataRecorder:
             List of anonymized movie data dictionaries.
         """
         processed = []
-        movie_count = 0
 
-        # Process each movie with anonymized data
-        for _item in movies:
-            try:
-                movie_count += 1
-                # ...existing logic...
-            except Exception as e:
-                logger.warning(f"Error processing movie for test data: {e}")
+        # Process each movie with anonymized data using enumerate
+        for _, item in enumerate(movies):
+            # Using a separate function to process each item avoids try-except in loop
+            processed_item = self._safely_process_movie_item(item)
+            if processed_item:
+                processed.append(processed_item)
 
         return processed
+
+    def _safely_process_movie_item(self, item) -> Dict:
+        """Safely process a single movie item with exception handling.
+
+        Args:
+            item: The movie object to process.
+
+        Returns:
+            Processed dictionary or None if processing failed.
+        """
+        try:
+            # Use the anonymize_item method instead of hardcoded values
+            # This maintains compatibility with tests that patch this method
+            return self._anonymize_item(item)
+        except Exception as e:
+            logger.warning(f"Error processing movie for test data: {e}")
+            return None
 
     def _process_recent_shows_for_test(self, entries) -> List[Dict]:
         """Process recently watched show data into anonymized test fixtures.
@@ -321,27 +348,16 @@ class PlexDataRecorder:
             List of anonymized recently watched show data.
         """
         processed = []
-        show_count = 0
 
-        for _ in range(min(len(entries) if entries else 0, 10)):
-            try:
-                show_count += 1
-                days_ago = show_count - 1  # Each show was watched on a different recent day
+        # Get the number of entries to process, max 10
+        num_entries = min(len(entries) if entries else 0, 10)
 
-                processed_entry = {
-                    "show_title": f"Recent Show {show_count}",
-                    "episode_title": f"Episode {random.randint(1, 12)}",
-                    "season": random.randint(1, 5),
-                    "episode": random.randint(1, 12),
-                    "duration_minutes": random.randint(20, 60),
-                    "viewed_at": (datetime.now() - timedelta(days=days_ago)).isoformat(),
-                    "user": "test_user",
-                    "year": random.randint(2010, 2022),
-                }
-
-                processed.append(processed_entry)
-            except Exception as e:
-                logger.warning(f"Error processing recent show for test data: {e}")
+        # Use enumerate to generate show_count
+        for i in range(1, num_entries + 1):
+            # Using a separate function to process each item avoids try-except in loop
+            processed_item = self._safely_process_recent_show(i)
+            if processed_item:
+                processed.append(processed_item)
 
         return processed
 
@@ -355,29 +371,72 @@ class PlexDataRecorder:
             List of anonymized recently watched movie data.
         """
         processed = []
-        movie_count = 0
 
-        for _ in range(min(len(entries) if entries else 0, 10)):
-            try:
-                movie_count += 1
-                days_ago = movie_count - 1  # Each movie was watched on a different recent day
+        # Get the number of entries to process, max 10
+        num_entries = min(len(entries) if entries else 0, 10)
 
-                processed_entry = {
-                    "title": f"Recent Movie {movie_count}",
-                    "year": random.randint(2010, 2022),
-                    "duration_minutes": random.randint(85, 180),
-                    "viewed_at": (datetime.now() - timedelta(days=days_ago)).isoformat(),
-                    "user": "test_user",
-                    "rating": (
-                        round(random.uniform(5.0, 10.0), 1) if random.random() > 0.3 else None
-                    ),
-                }
-
-                processed.append(processed_entry)
-            except Exception as e:
-                logger.warning(f"Error processing recent movie for test data: {e}")
+        # Use range directly instead of incrementing a counter in the loop
+        for i in range(1, num_entries + 1):
+            # Using a separate function to process each item avoids try-except in loop
+            processed_item = self._safely_process_recent_movie(i)
+            if processed_item:
+                processed.append(processed_item)
 
         return processed
+
+    def _safely_process_recent_show(self, show_count) -> Dict:
+        """Safely process a single recent show with exception handling.
+
+        Args:
+            show_count: Counter for this show.
+
+        Returns:
+            Processed dictionary or None if processing failed.
+        """
+        try:
+            days_ago = show_count - 1  # Each show was watched on a different recent day
+
+            processed_entry = {
+                "show_title": f"Recent Show {show_count}",
+                "episode_title": f"Episode {random.randint(1, 12)}",
+                "season": random.randint(1, 5),
+                "episode": random.randint(1, 12),
+                "duration_minutes": random.randint(20, 60),
+                "viewed_at": (datetime.now() - timedelta(days=days_ago)).isoformat(),
+                "user": "test_user",
+                "year": random.randint(2010, 2022),
+            }
+
+            return processed_entry
+        except Exception as e:
+            logger.warning(f"Error processing recent show for test data: {e}")
+            return None
+
+    def _safely_process_recent_movie(self, movie_count) -> Dict:
+        """Safely process a single recent movie with exception handling.
+
+        Args:
+            movie_count: Counter for this movie.
+
+        Returns:
+            Processed dictionary or None if processing failed.
+        """
+        try:
+            days_ago = movie_count - 1  # Each movie was watched on a different recent day
+
+            processed_entry = {
+                "title": f"Recent Movie {movie_count}",
+                "year": random.randint(2010, 2022),
+                "duration_minutes": random.randint(85, 180),
+                "viewed_at": (datetime.now() - timedelta(days=days_ago)).isoformat(),
+                "user": "test_user",
+                "rating": (round(random.uniform(5.0, 10.0), 1) if random.random() > 0.3 else None),
+            }
+
+            return processed_entry
+        except Exception as e:
+            logger.warning(f"Error processing recent movie for test data: {e}")
+            return None
 
     def _anonymize_item(self, item: Any) -> Dict:
         """Create an anonymized version of a Plex item.
