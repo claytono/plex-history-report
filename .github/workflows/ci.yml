@@ -24,6 +24,27 @@ jobs:
           pip install --upgrade pip
           pip install uv
 
+      # Cache uv dependencies
+      - name: Cache uv dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/uv
+            ~/.local/share/uv
+            .venv
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml', 'uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      # Cache pre-commit tools
+      - name: Cache pre-commit tools
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pre-commit-
+
       - name: Create venv and install dependencies
         run: |
           uv venv
@@ -53,6 +74,21 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install uv
+
+      # Cache uv dependencies
+      - name: Cache uv dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/uv
+            ~/.local/share/uv
+            .venv
+          key:
+            ${{ runner.os }}-uv-py${{ matrix.python-version }}-${{ hashFiles('pyproject.toml',
+            'uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-py${{ matrix.python-version }}-
+            ${{ runner.os }}-uv-
 
       - name: Create venv and install dependencies
         run: |
