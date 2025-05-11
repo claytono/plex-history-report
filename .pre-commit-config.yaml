@@ -5,7 +5,7 @@
 repos:
   # Standard hooks from community repositories
   - repo: https://github.com/psf/black
-    rev: 23.1.0 # Match version from pyproject.toml
+    rev: 23.12.1 # Match version from pyproject.toml
     hooks:
       - id: black
         files: ^(plex_history_report|tests)/
