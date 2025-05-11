@@ -55,6 +55,7 @@ select = [
     "UP",  # pyupgrade
     "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
+    # "C90", # McCabe complexity checking (disabled - using radon instead)
     "SIM", # flake8-simplify
     "ARG", # flake8-unused-arguments
     "PTH", # use pathlib
@@ -63,6 +64,10 @@ select = [
 ignore = [
     "E501", # line too long (handled by formatter)
 ]
+
+# McCabe complexity configuration
+[tool.ruff.lint.mccabe]
+max-complexity = 10  # Default is 10, adjust as needed
 
 [tool.ruff.format]
 quote-style = "double"
