@@ -345,7 +345,14 @@ def get_media_statistics(
         # Filter for partially watched items if requested
         if args.partially_watched_only:
             logger.debug("Filtering for partially watched TV shows")
-            stats = [show for show in stats if 0 < show["completion_percentage"] < 100]
+            # Safely filter out items with None or invalid completion_percentage values
+            stats = [
+                show
+                for show in stats
+                if show.get("completion_percentage") is not None
+                and isinstance(show["completion_percentage"], (int, float))
+                and 0 < show["completion_percentage"] < 100
+            ]
             logger.info(f"Filtered to {len(stats)} partially watched TV shows")
     else:  # movies
         logger.debug(f"Fetching movie statistics for user: {username}")
@@ -357,8 +364,15 @@ def get_media_statistics(
         if args.partially_watched_only:
             logger.debug("Filtering for partially watched movies")
             # Consider movies "partially watched" if they're between 0% and 100% complete
+            # Safely handle None values or invalid completion_percentage values
             before_count = len(stats)
-            stats = [movie for movie in stats if 0 < movie["completion_percentage"] < 100]
+            stats = [
+                movie
+                for movie in stats
+                if movie.get("completion_percentage") is not None
+                and isinstance(movie["completion_percentage"], (int, float))
+                and 0 < movie["completion_percentage"] < 100
+            ]
             logger.info(
                 f"Filtered to {len(stats)} partially watched movies (removed {before_count - len(stats)} fully watched or unwatched movies)"
             )
