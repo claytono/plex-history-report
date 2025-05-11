@@ -71,19 +71,35 @@ if [ $# -eq 0 ]; then
     while IFS= read -r file; do
         # Skip .bin directory and Markdown files
         if [[ "$file" != .bin/* && "$file" != *.md ]]; then
-            # Check if the file is a text file by looking for null bytes
-            # Binary files almost always contain null bytes, text files almost never do
-            if ! grep -q -U $'\x00' "$file" 2>/dev/null; then
-                ARGS+=("$file")
+            # Check if the file exists (it might have been removed)
+            if [ -f "$file" ]; then
+                # Check if the file is a text file by looking for null bytes
+                # Binary files almost always contain null bytes, text files almost never do
+                if ! grep -q -U $'\x00' "$file" 2>/dev/null; then
+                    ARGS+=("$file")
+                fi
             fi
         fi
     done < <(git --no-pager ls-files)
 else
-    # Use provided arguments
-    ARGS=("$@")
+    # Use provided arguments but check if they exist
+    ARGS=()
+    for file in "$@"; do
+        if [ -f "$file" ]; then
+            ARGS+=("$file")
+        else
+            echo "Warning: File does not exist, skipping: $file"
+        fi
+    done
 fi
 
 # Run editorconfig-checker with the determined arguments
+if [ ${#ARGS[@]} -eq 0 ]; then
+    echo "No files to check."
+    echo -e "\nEditorConfig check completed successfully."
+    exit 0
+fi
+
 echo "Running: $EC_BINARY ${ARGS[*]}"
 if ! "$EC_BINARY" "${ARGS[@]}"; then
     echo -e "\nEditorConfig check found issues."

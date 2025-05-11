@@ -28,6 +28,7 @@ dev = [
     "shellcheck-py>=0.9.0",
     "radon>=6.0.0",         # Added for code complexity analysis
     "xenon>=0.9.0",         # Added for CI-focused complexity checking
+    "pre-commit>=3.5.0",    # Added for pre-commit hooks
 ]
 
 [project.scripts]

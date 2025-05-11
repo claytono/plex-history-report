@@ -21,8 +21,7 @@
 - Ensure no trailing whitespace is added to lines and all edited files have a final newline.
 - Prefer editing files directly using your tools, instead of using shell commands.
 - Only add comments to the code if they are necessary for understanding the code.
-- Never run shellcheck or other linting tools directly; always use the corresponding
-  `./scripts/run-*` scripts (e.g., `./scripts/run-shellcheck`, `./scripts/run-black`, etc.).
+- Use `scripts/run-all-checks` to run all tests and linters.
 
 ## GitHub Workflow
 

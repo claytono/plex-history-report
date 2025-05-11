@@ -50,7 +50,6 @@ class TestCLIParser(unittest.TestCase):
         ), patch(
             "plex_history_report.cli.FormatterFactory.get_formatter", return_value=mock_formatter
         ):
-
             # Parse args with --detailed
             args = self.parser.parse_args(["--tv", "--detailed"])
             self.assertTrue(args.detailed)
@@ -94,7 +93,6 @@ class TestCLIParser(unittest.TestCase):
         ), patch(
             "plex_history_report.cli.logger"
         ):
-
             # Parse args with --partially-watched-only
             args = self.parser.parse_args(["--movies", "--partially-watched-only"])
 
@@ -143,7 +141,6 @@ class TestCLIParser(unittest.TestCase):
         ), patch(
             "plex_history_report.cli.logger"
         ):
-
             # Parse args with --partially-watched-only
             args = self.parser.parse_args(["--tv", "--partially-watched-only"])
 
@@ -180,7 +177,6 @@ class TestCLIParser(unittest.TestCase):
         ), patch(
             "plex_history_report.cli.Console", return_value=MagicMock()
         ):
-
             # Parse args with --debug
             args = self.parser.parse_args(["--tv", "--debug"])
             self.assertTrue(args.debug)
@@ -225,7 +221,6 @@ class TestCLIParser(unittest.TestCase):
         ), patch(
             "plex_history_report.cli.logger"
         ):
-
             # Case 1: Normal filtering (default)
             args = self.parser.parse_args(["--tv"])
             run(args)

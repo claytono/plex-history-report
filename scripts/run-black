@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-# Script to format Python files with Black via uvx
-
-# Exit on any error
-set -e
-
-echo "Formatting Python code with Black..."
-uvx black --line-length 100 plex_history_report tests

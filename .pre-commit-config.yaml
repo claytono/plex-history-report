@@ -1,0 +1,75 @@
+---
+# Pre-commit configuration for plex-history-report
+# See https://pre-commit.com/ for documentation
+
+repos:
+  # Standard hooks from community repositories
+  - repo: https://github.com/psf/black
+    rev: 23.1.0 # Match version from pyproject.toml
+    hooks:
+      - id: black
+        files: ^(plex_history_report|tests)/
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.0 # Match version from pyproject.toml
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^(plex_history_report|tests)/
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0-alpha.9-for-vscode
+    hooks:
+      - id: prettier
+        types_or: [markdown, yaml, json]
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.5
+    hooks:
+      - id: shellcheck
+        files: ^(bin|scripts)/
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.11.0-1
+    hooks:
+      - id: shfmt
+        args: [-i=4, -bn, -ci]
+        files: ^(bin|scripts)/
+
+  - repo: https://github.com/yunojuno/pre-commit-xenon
+    rev: cc59b0431a5d072786b59430e9b342b2881064f6
+    hooks:
+      - id: xenon
+        args:
+          [
+            "--max-average=C",
+            "--max-modules=D",
+            "--max-absolute=F",
+            "--exclude=*/__pycache__/*,*/.git/*,*/.venv/*",
+            "--no-assert",
+            "plex_history_report",
+          ]
+
+  # Use the official pymarkdown pre-commit hook
+  - repo: https://github.com/jackdewinter/pymarkdown
+    rev: v0.9.29
+    hooks:
+      - id: pymarkdown
+        args: ["scan"]
+
+  # Local hooks
+  - repo: local
+    hooks:
+      - id: editorconfig-lint
+        name: EditorConfig lint
+        entry: ./scripts/run-editorconfig-lint
+        language: system
+        pass_filenames: false
+
+      - id: tests
+        name: Run tests with coverage
+        entry: ./scripts/run-tests
+        language: system
+        types: [python]
+        pass_filenames: false
+        verbose: true
