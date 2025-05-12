@@ -70,7 +70,7 @@ exclude = [
     "**/__pycache__",
     "**/.git",
 ]
-reportMissingImports = false  # Changed to match pyrightconfig.json
+reportMissingImports = false
 reportMissingModuleSource = false
 reportMissingTypeStubs = false
 pythonVersion = "3.8"
@@ -81,4 +81,4 @@ reportOptionalMemberAccess = false
 reportOptionalSubscript = false
 reportOptionalIterable = false
 reportOptionalContextManager = false
-reportOptionalOperand = false
+reportOptionalOperand = true
