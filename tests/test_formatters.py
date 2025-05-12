@@ -3,6 +3,7 @@
 import json
 import unittest
 from datetime import datetime
+from typing import Type, cast
 from unittest.mock import MagicMock, patch
 
 import yaml
@@ -371,10 +372,26 @@ class TestFormatterFactory(unittest.TestCase):
 
     def test_register_formatter(self):
         """Test registering a new formatter type."""
-        # Create a mock formatter class
-        mock_formatter_class = MagicMock()
-        mock_formatter_instance = MagicMock()
-        mock_formatter_class.return_value = mock_formatter_instance
+
+        # Create a proper BaseFormatter subclass for testing
+        class MockFormatter(BaseFormatter):
+            def format_show_statistics(self, _stats):
+                return "Mock show stats"
+
+            def format_movie_statistics(self, _stats):
+                return "Mock movie stats"
+
+            def format_recently_watched(self, _stats, media_type="show"):
+                return f"Mock recently watched {media_type}s"
+
+        # Create a mock instance that will be returned by our mock class
+        mock_formatter_instance = MagicMock(spec=MockFormatter)
+
+        # Make a mock class that will return our mock instance
+        # Cast it to the proper type to satisfy Pyright
+        mock_formatter_class = cast(
+            Type[BaseFormatter], MagicMock(return_value=mock_formatter_instance)
+        )
 
         try:
             # Register the mock formatter

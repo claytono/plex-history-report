@@ -6,6 +6,7 @@ by mocking the PlexClient to use our fixture data instead of calling a real Plex
 
 import io
 import unittest
+from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -262,7 +263,7 @@ class TestCLIIntegration(unittest.TestCase):
         mock_config = {"plex": {"base_url": "http://localhost:32400", "token": "test_token"}}
 
         # Create args for the CLI
-        class MockArgs:
+        class MockArgs(Namespace):
             tv = True
             movies = False
             config = None
@@ -308,7 +309,7 @@ class TestCLIIntegration(unittest.TestCase):
         mock_config = {"plex": {"base_url": "http://localhost:32400", "token": "test_token"}}
 
         # Create args for the CLI
-        class MockArgs:
+        class MockArgs(Namespace):
             tv = False
             movies = True
             config = None
@@ -354,7 +355,7 @@ class TestCLIIntegration(unittest.TestCase):
         mock_config = {"plex": {"base_url": "http://localhost:32400", "token": "test_token"}}
 
         # Create args for the CLI
-        class MockArgs:
+        class MockArgs(Namespace):
             tv = True
             movies = False
             config = None

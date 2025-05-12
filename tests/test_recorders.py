@@ -41,10 +41,26 @@ def test_serialize_basic_item():
     assert data["viewOffset"] == item.viewOffset
     assert data["isWatched"] == item.isWatched
 
-    ep = make_dummy_item()
-    ep.type = "episode"
-    ep.seasonNumber = 1
-    ep.index = 2
+    # Create a new episode item with seasonNumber and index attributes defined in the class
+    class EpisodeItem:
+        def __init__(self):
+            self.key = "/test/123"
+            self.title = "Test Title"
+            self.type = "episode"
+            self.year = 2022
+            self.duration = 120000  # milliseconds
+            self.rating = 8.5
+            self.viewOffset = 60000  # milliseconds
+            self.isWatched = True
+            self.viewedAt = datetime(2025, 5, 2, 12, 0, 0)
+            self.username = "user1"
+            self.seasonNumber = 1
+            self.index = 2
+
+        def show(self):
+            return SimpleNamespace(title="Show Name")
+
+    ep = EpisodeItem()
     data2 = recorder._serialize_plex_item(ep)
     assert data2["seasonNumber"] == 1
     assert data2["index"] == 2
@@ -147,13 +163,15 @@ def test_process_shows_for_test():
 
         # Check processed result
         assert isinstance(result, list)
-        # Test error handling by mocking a failure
+        assert len(result) == 3
+
+        # Test error handling by mocking a failure that raises an exception
         mock_anonymize.side_effect = Exception("Test error")
 
         # Should handle exceptions gracefully
         result = recorder._process_shows_for_test(shows)
         assert isinstance(result, list)
-        assert len(result) == 0  # No items added due to exceptions
+        assert len(result) == 0  # No items should be added when exceptions occur
 
 
 def test_process_movies_for_test():
@@ -172,13 +190,15 @@ def test_process_movies_for_test():
 
         # Check processed result
         assert isinstance(result, list)
-        # Test error handling by mocking a failure
+        assert len(result) == 3
+
+        # Test error handling by mocking a failure that raises an exception
         mock_anonymize.side_effect = Exception("Test error")
 
         # Should handle exceptions gracefully
         result = recorder._process_movies_for_test(movies)
         assert isinstance(result, list)
-        assert len(result) == 0  # No items added due to exceptions
+        assert len(result) == 0  # No items should be added when exceptions occur
 
 
 def test_error_handling_in_record_data():
