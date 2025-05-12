@@ -399,12 +399,12 @@ def get_recently_watched(
         return client.get_recently_watched_movies(username=username)
 
 
-def display_performance_report(console: Console, performance_data: Dict) -> None:
+def display_performance_report(console: Console, performance_data: Optional[Dict]) -> None:
     """Display the performance benchmark report.
 
     Args:
         console: Console instance for output.
-        performance_data: Performance data to display.
+        performance_data: Performance data to display or None.
     """
     if not performance_data:
         return

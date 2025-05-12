@@ -24,6 +24,7 @@ dev = [
     "ruff>=0.3.0",                 # Used for both linting and formatting (replaces black)
     "isort>=5.12.0",
     "ssort>=0.14.0",               # Added for statement sorting
+    "pyright>=1.1.400",            # Added for static type checking
     "pymarkdownlnt>=0.9.0",
     "shellcheck-py>=0.9.0",
     "radon>=6.0.0",                # Added for code complexity analysis
@@ -62,3 +63,22 @@ docstring-code-format = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
+
+[tool.pyright]
+include = ["plex_history_report", "tests"]
+exclude = [
+    "**/__pycache__",
+    "**/.git",
+]
+reportMissingImports = false  # Changed to match pyrightconfig.json
+reportMissingModuleSource = false
+reportMissingTypeStubs = false
+pythonVersion = "3.8"
+typeCheckingMode = "basic"
+strictParameterNoneValue = false
+reportOptionalCall = false
+reportOptionalMemberAccess = false
+reportOptionalSubscript = false
+reportOptionalIterable = false
+reportOptionalContextManager = false
+reportOptionalOperand = false
