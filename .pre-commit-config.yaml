@@ -20,7 +20,7 @@ repos:
         files: ^(plex_history_report|tests)/
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.400
+    rev: v1.1.403
     hooks:
       - id: pyright
         files: ^(plex_history_report|tests)/
