@@ -5,7 +5,7 @@
 repos:
   # Standard hooks from community repositories
   - repo: https://github.com/bwhmather/ssort
-    rev: 0.14.0 # Using correct tag format (without "v" prefix)
+    rev: 0.15.0 # Using correct tag format (without "v" prefix)
     hooks:
       - id: ssort
         files: ^(plex_history_report|tests)/
