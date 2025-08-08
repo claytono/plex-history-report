@@ -11,7 +11,7 @@ repos:
         files: ^(plex_history_report|tests)/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.7 # Match version from pyproject.toml
+    rev: v0.12.8 # Match version from pyproject.toml
     hooks:
       - id: ruff
         args: ["--fix"]
