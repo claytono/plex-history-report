@@ -60,7 +60,7 @@ repos:
 
   # Use the official pymarkdown pre-commit hook
   - repo: https://github.com/jackdewinter/pymarkdown
-    rev: v0.9.31
+    rev: v0.9.32
     hooks:
       - id: pymarkdown
         args: ["scan"]
